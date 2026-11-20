@@ -1,0 +1,24 @@
+# Runs on every push and pull request: checks the code and runs unit/widget tests.
+# Tests never call Gemini (CLAUDE.md), so this needs no secrets and costs nothing.
+name: flutter test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same Flutter version as on my PC, so CI and local results match.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.50.1
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
