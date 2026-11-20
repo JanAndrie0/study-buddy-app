@@ -1,0 +1,366 @@
+[
+ {
+  "pdf": "11_Anatomy of Typography.pdf",
+  "pages": 31,
+  "target": 25,
+  "score": 93.4,
+  "validity": 88.0,
+  "grounding": 100.0,
+  "mix": 87.0,
+  "uniqueness": 92.0,
+  "language": 100.0,
+  "questions": 25,
+  "valid": 22,
+  "type_counts": {
+   "identification": 9,
+   "multiple_choice": 5,
+   "flashcard": 4,
+   "true_false": 3,
+   "modified_true_false": 4
+  },
+  "page_accuracy": 100.0,
+  "duplicates": 2,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    3
+   ],
+   [
+    "underlined_word not in prompt",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 18483,
+  "output_tokens": 2823,
+  "thinking_tokens": 0,
+  "seconds": 38.7,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0244
+ },
+ {
+  "pdf": "CIT4303_LECT3 Software Acquisition Strategies-1.pdf",
+  "pages": 6,
+  "target": 10,
+  "score": 93.5,
+  "validity": 90.0,
+  "grounding": 87.5,
+  "mix": 90.0,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "identification": 2,
+   "enumeration": 1,
+   "flashcard": 2,
+   "multiple_choice": 2,
+   "true_false": 1,
+   "modified_true_false": 2
+  },
+  "page_accuracy": 87.5,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] What primary economic question should organizations ask when evaluatin -> Which acquisition strategy provides the greatest v"
+  ],
+  "input_tokens": 5266,
+  "output_tokens": 1408,
+  "thinking_tokens": 0,
+  "seconds": 17.0,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0092
+ },
+ {
+  "pdf": "CIT4303_LECT4 Software Quality Economics-1.pdf",
+  "pages": 7,
+  "target": 10,
+  "score": 93.5,
+  "validity": 90.0,
+  "grounding": 87.5,
+  "mix": 90.0,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "identification": 2,
+   "multiple_choice": 2,
+   "flashcard": 2,
+   "true_false": 1,
+   "modified_true_false": 2,
+   "enumeration": 1
+  },
+  "page_accuracy": 62.5,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] What three components make up the complete view of Total Defect Cost? -> Correction Costs + Operational Costs + Business Im"
+  ],
+  "input_tokens": 5786,
+  "output_tokens": 1097,
+  "thinking_tokens": 2839,
+  "seconds": 76.3,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0191
+ },
+ {
+  "pdf": "CIT4303_LECT5 Technology Cost AnalysisPART1.pdf",
+  "pages": 6,
+  "target": 10,
+  "score": 94.0,
+  "validity": 90.0,
+  "grounding": 100.0,
+  "mix": 90.0,
+  "uniqueness": 90.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "identification": 2,
+   "multiple_choice": 2,
+   "enumeration": 1,
+   "flashcard": 2,
+   "modified_true_false": 2,
+   "true_false": 1
+  },
+  "page_accuracy": 100.0,
+  "duplicates": 1,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 5266,
+  "output_tokens": 1393,
+  "thinking_tokens": 2758,
+  "seconds": 45.2,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0195
+ },
+ {
+  "pdf": "M2. Lecture Presentation. Human Acts, and Ethical Theories and Reasoning.pdf",
+  "pages": 39,
+  "target": 31,
+  "score": 95.9,
+  "validity": 90.3,
+  "grounding": 95.7,
+  "mix": 96.9,
+  "uniqueness": 96.8,
+  "language": 100.0,
+  "questions": 31,
+  "valid": 28,
+  "type_counts": {
+   "identification": 8,
+   "multiple_choice": 6,
+   "flashcard": 5,
+   "enumeration": 3,
+   "true_false": 5,
+   "modified_true_false": 4
+  },
+  "page_accuracy": 65.2,
+  "duplicates": 1,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    3
+   ]
+  ],
+  "ungrounded_examples": [
+   "[multiple_choice] Who are the primary philosophers associated with Hedonism in the summa -> Aristippus and Epicurus"
+  ],
+  "input_tokens": 22699,
+  "output_tokens": 3936,
+  "thinking_tokens": 4301,
+  "seconds": 61.3,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0479
+ },
+ {
+  "pdf": "M3. Lecture Presentation. Intellectualism.pdf",
+  "pages": 25,
+  "target": 20,
+  "score": 95.7,
+  "validity": 95.0,
+  "grounding": 93.8,
+  "mix": 100.0,
+  "uniqueness": 95.0,
+  "language": 94.7,
+  "questions": 20,
+  "valid": 19,
+  "type_counts": {
+   "identification": 5,
+   "multiple_choice": 4,
+   "flashcard": 3,
+   "enumeration": 2,
+   "true_false": 3,
+   "modified_true_false": 3
+  },
+  "page_accuracy": 68.8,
+  "duplicates": 1,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[multiple_choice] Based on the faculties of the human person, what is the product and se -> Emotion and Heart"
+  ],
+  "input_tokens": 15321,
+  "output_tokens": 2373,
+  "thinking_tokens": 72,
+  "seconds": 38.5,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0207
+ },
+ {
+  "pdf": "M4. Lecture Presentation. Virtue Ethics.pdf",
+  "pages": 22,
+  "target": 18,
+  "score": 94.9,
+  "validity": 94.4,
+  "grounding": 92.9,
+  "mix": 92.8,
+  "uniqueness": 94.4,
+  "language": 100.0,
+  "questions": 18,
+  "valid": 17,
+  "type_counts": {
+   "flashcard": 3,
+   "identification": 4,
+   "multiple_choice": 4,
+   "true_false": 3,
+   "modified_true_false": 3,
+   "enumeration": 1
+  },
+  "page_accuracy": 78.6,
+  "duplicates": 1,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] Aristotelian definition of 'Good' -> That towards which a thing ends (or aims)."
+  ],
+  "input_tokens": 13740,
+  "output_tokens": 2109,
+  "thinking_tokens": 3682,
+  "seconds": 58.9,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.032
+ },
+ {
+  "pdf": "Module 1 - Introduction to Ethical Hacking.pdf",
+  "pages": 9,
+  "target": 10,
+  "score": 96.0,
+  "validity": 90.0,
+  "grounding": 100.0,
+  "mix": 90.0,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "identification": 2,
+   "multiple_choice": 2,
+   "flashcard": 1,
+   "true_false": 2,
+   "modified_true_false": 2,
+   "enumeration": 1
+  },
+  "page_accuracy": 100.0,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 6826,
+  "output_tokens": 1519,
+  "thinking_tokens": 2505,
+  "seconds": 28.3,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0202
+ },
+ {
+  "pdf": "Module 2 - Network Scanning.pdf",
+  "pages": 19,
+  "target": 15,
+  "score": 93.9,
+  "validity": 93.3,
+  "grounding": 91.7,
+  "mix": 91.7,
+  "uniqueness": 100.0,
+  "language": 92.9,
+  "questions": 15,
+  "valid": 14,
+  "type_counts": {
+   "identification": 3,
+   "multiple_choice": 3,
+   "flashcard": 2,
+   "true_false": 2,
+   "modified_true_false": 3,
+   "enumeration": 2
+  },
+  "page_accuracy": 58.3,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] Difference between port scanning and service scanning -> Port scanning identifies which ports are open, clo"
+  ],
+  "input_tokens": 12026,
+  "output_tokens": 1959,
+  "thinking_tokens": 0,
+  "seconds": 14.9,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0164
+ }
+]

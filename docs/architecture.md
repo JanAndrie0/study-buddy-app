@@ -131,7 +131,7 @@ flowchart TB
 - **When to replace:** only if the package is abandoned. `dart_srs` is a fallback.
 
 ### Local grader (plain Dart)
-- **Role:** checks typed answers offline: ignores case and accents, allows small typos (edit distance), accepts AI-generated alternative answers ("DNA" = "deoxyribonucleic acid"), gives enumeration partial credit in any order, and checks modified true or false (find the wrong word **and** correct it).
+- **Role:** checks typed answers offline: ignores case and accents, allows small typos (edit distance), accepts AI-generated alternative answers ("DNA" = "deoxyribonucleic acid"), gives enumeration partial credit in any order, and checks modified true or false in the underline style: True/False, and if False the replacement for the underlined word (ADR-007).
 - **Why now:** has_offline = true and budget = low. Calling Gemini to grade every answer would cost money, need internet and be slower. Unit-tested rules are predictable.
 - **When to replace:** add an optional online "Was I actually right?" AI re-check if the grader wrongly marks correct answers as wrong more than 10% of the time in your own reviews.
 
@@ -213,6 +213,12 @@ flowchart TB
 - **Tradeoff:** None worth noting.
 - **Revisit when:** you move prompts to server templates.
 
+### ADR-007: Modified true or false uses the classic underline style (supersedes the modified T/F rule in ADR-004)
+- **Choice:** Each modified true or false statement shows one **underlined word or phrase** (`underlined_word`, always present and copied exactly from the statement). The student answers True or False; if False, they type the word or phrase that replaces the underlined one (`correction`). The grader checks True/False, then fuzzy-matches `correction` with the same rules as identification. The rest of ADR-004 (identification, enumeration) is unchanged.
+- **Why:** This is the format Filipino students know from quizzes and board-exam reviewers, which is the product's main differentiator. "Find the wrong word and fix it" is harder to grade (any phrase in the sentence could be picked) and isn't how local exams ask it.
+- **Tradeoff:** Easier than finding the wrong word yourself, because the underline points at what to check. It also needs a visible underline in the study screen.
+- **Revisit when:** you want a harder "challenge mode". Then add a setting that hides the underline, and grade `underlined_word` + `correction` together.
+
 ## Cost Estimate
 - **Monthly now (just you):** about $1–4. A 30-page lecture is roughly 8–10k input tokens and 6–10k output tokens on Gemini Flash, so a few cents per deck. Even 50 decks a month plus eval runs stays well under the ~$10/month AI Pro grant. Firebase App Check and AI Logic themselves add nothing at this scale.
 - **Monthly at next stage (30–50 classmates):** about $5–20, mostly Gemini generation, plus Firestore reads once sync exists. Set per-user generation limits before inviting people.
@@ -248,11 +254,13 @@ flowchart TB
 - DO keep App Check enabled; use the debug provider only on your own device.
 - DO NOT commit `.env` files, keystores or service account keys. (`google-services.json` is not a secret, but App Check must be enforced before the repo goes public.)
 - PREFER simple, readable Dart over clever abstractions: this is a learning and portfolio repo.
+- DO grade modified true or false in the underline style (ADR-007): every item MUST have `underlined_word` appearing in `prompt` (case-insensitive) and, when the answer is False, a non-empty `correction`; drop items that break this.
 
 ## Changelog
 | Date | Reason | Changes |
 |------|--------|---------|
 | 2026-11-20 | Initial generation (moved Study Buddy from AWS + React to Google Cloud + Flutter) | — |
+| 2026-11-20 | Modified true or false format chosen while designing `reviewer_schema.json` | Added ADR-007 (underline style, supersedes the modified T/F rule of ADR-004; ADR-004 left unchanged). Updated the Local grader role and added an agent rule. Schema field `wrong_word` → `underlined_word` (always present). Note: Google renamed the "Vertex AI Gemini API" to the **"Agent Platform Gemini API"**; in `firebase_ai` 5.x the backend is `FirebaseAI.agentPlatform()`. |
 
 ---
 To update, run `/planfirst` again.

@@ -56,8 +56,10 @@ app.*.map.json
 key.properties
 service-account*.json
 
-# My lecture PDFs stay on my machine (copyrighted course material)
+# My lecture PDFs stay on my machine (copyrighted course material),
+# and so do the raw Gemini responses generated from them.
 evals/lectures/
+evals/results/raw/
 
 # Python (evals)
 .venv/

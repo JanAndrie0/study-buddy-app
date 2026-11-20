@@ -1,0 +1,45 @@
+[
+ {
+  "pdf": "CIT4303_LECT4 Software Quality Economics-1.pdf",
+  "pages": 7,
+  "target": 10,
+  "score": 93.5,
+  "validity": 90.0,
+  "grounding": 87.5,
+  "mix": 90.0,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "identification": 2,
+   "multiple_choice": 2,
+   "flashcard": 2,
+   "true_false": 1,
+   "modified_true_false": 2,
+   "enumeration": 1
+  },
+  "page_accuracy": 62.5,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] What three components make up the complete view of Total Defect Cost? -> Correction Costs + Operational Costs + Business Im"
+  ],
+  "input_tokens": 5786,
+  "output_tokens": 1097,
+  "thinking_tokens": 2839,
+  "seconds": 76.3,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0191
+ }
+]

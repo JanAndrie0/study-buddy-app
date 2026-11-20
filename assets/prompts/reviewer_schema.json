@@ -1,0 +1,89 @@
+{
+  "type": "object",
+  "description": "A Filipino-style reviewer generated from one lecture PDF.",
+  "properties": {
+    "deck_title": {
+      "type": "string",
+      "description": "Short title for the reviewer, based on the lecture topic."
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject or course the lecture belongs to, if stated in the PDF; otherwise a short guess like 'Ethics'."
+    },
+    "explanation_language": {
+      "type": "string",
+      "enum": ["english", "filipino", "taglish"],
+      "description": "Language used for every explanation in this deck."
+    },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The reviewer items. Each item must follow the rules for its type.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "flashcard",
+              "multiple_choice",
+              "identification",
+              "enumeration",
+              "true_false",
+              "modified_true_false"
+            ]
+          },
+          "source_page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "PDF page number (starting at 1) where the answer is found."
+          },
+          "prompt": {
+            "type": "string",
+            "description": "flashcard: the front (term or question). multiple_choice / identification: the question. enumeration: what to list, saying how many (e.g. 'Enumerate the 4 ...'). true_false / modified_true_false: the statement to judge."
+          },
+          "underlined_word": {
+            "type": "string",
+            "description": "modified_true_false only, ALWAYS present: the one word or short phrase the student must check, copied exactly from prompt. It is shown underlined. If the statement is false, this is the part that makes it false."
+          },
+          "choices": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 4,
+            "maxItems": 4,
+            "description": "multiple_choice only: exactly 4 options, one of them identical to answer."
+          },
+          "answer": {
+            "type": "string",
+            "description": "flashcard: the back. multiple_choice: the correct option, copied exactly from choices. identification: the term. enumeration: the items joined with '; '. true_false / modified_true_false: exactly 'True' or 'False'."
+          },
+          "correction": {
+            "type": "string",
+            "description": "Always present. modified_true_false: the word or phrase that makes the statement true: the replacement for underlined_word when answer is 'False', or underlined_word itself when answer is 'True'. All other types: empty string."
+          },
+          "accepted_answers": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "identification only: other correct ways to write the answer (acronym, full name, common spelling). May be empty."
+          },
+          "items": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 2,
+            "description": "enumeration only: each expected item, short, in the PDF's wording."
+          },
+          "explanation": {
+            "type": "string",
+            "description": "1 to 3 sentences in explanation_language explaining why the answer is correct, using only facts from the PDF."
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": ["easy", "medium", "hard"]
+          }
+        },
+        "required": ["type", "source_page", "prompt", "answer", "correction", "explanation", "difficulty"]
+      }
+    }
+  },
+  "required": ["deck_title", "subject", "explanation_language", "questions"]
+}

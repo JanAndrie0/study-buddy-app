@@ -1,0 +1,78 @@
+{
+  "deck_title": "Software Quality Economics",
+  "subject": "CIT4303",
+  "explanation_language": "taglish",
+  "questions": [
+    {
+      "type": "flashcard",
+      "source_page": 2,
+      "prompt": "Cost of Quality (CoQ)",
+      "answer": "The total cost of preventing, finding and fixing defects in a product.",
+      "correction": "",
+      "explanation": "Ito yung kabuuang gastos para siguraduhing maayos ang quality, kasama ang prevention, appraisal at failure costs.",
+      "difficulty": "easy"
+    },
+    {
+      "type": "multiple_choice",
+      "source_page": 3,
+      "prompt": "Which cost category includes testing and inspection?",
+      "choices": [
+        "Prevention cost",
+        "Appraisal cost",
+        "Internal failure cost",
+        "External failure cost"
+      ],
+      "answer": "Appraisal cost",
+      "correction": "",
+      "explanation": "Ang appraisal cost ay gastos sa pag-check ng quality, gaya ng testing at inspection.",
+      "difficulty": "medium"
+    },
+    {
+      "type": "identification",
+      "source_page": 4,
+      "prompt": "Costs from defects found by customers after release.",
+      "answer": "External failure cost",
+      "correction": "",
+      "accepted_answers": [
+        "External failure costs",
+        "External failure"
+      ],
+      "explanation": "External failure cost kasi na-detect na ng customer ang defect, hindi na sa loob ng company.",
+      "difficulty": "medium"
+    },
+    {
+      "type": "enumeration",
+      "source_page": 3,
+      "prompt": "Enumerate the 4 categories of the cost of quality.",
+      "answer": "Prevention; Appraisal; Internal failure; External failure",
+      "correction": "",
+      "items": [
+        "Prevention",
+        "Appraisal",
+        "Internal failure",
+        "External failure"
+      ],
+      "explanation": "Apat ang categories ng CoQ: dalawa para iwasan o hanapin ang defects, dalawa para sa failures.",
+      "difficulty": "easy"
+    },
+    {
+      "type": "true_false",
+      "source_page": 5,
+      "prompt": "Fixing a defect usually costs less the later it is found.",
+      "answer": "False",
+      "correction": "",
+      "explanation": "Mali, kasi mas mahal ayusin ang defect habang tumatagal bago ito makita.",
+      "difficulty": "easy"
+    },
+    {
+      "type": "modified_true_false",
+      "source_page": 3,
+      "prompt": "Training developers is an example of appraisal cost.",
+      "answer": "False",
+      "underlined_word": "appraisal",
+      "correction": "prevention",
+      "explanation": "Ang training ay prevention cost kasi iniiwasan nito ang defects bago pa mangyari.",
+      "difficulty": "hard"
+    }
+  ]
+}

@@ -1,0 +1,370 @@
+[
+ {
+  "pdf": "11_Anatomy of Typography.pdf",
+  "pages": 31,
+  "target": 25,
+  "score": 96.2,
+  "validity": 92.0,
+  "grounding": 100.0,
+  "mix": 97.0,
+  "uniqueness": 92.0,
+  "language": 100.0,
+  "questions": 25,
+  "valid": 23,
+  "type_counts": {
+   "identification": 6,
+   "multiple_choice": 5,
+   "flashcard": 4,
+   "true_false": 4,
+   "modified_true_false": 4,
+   "enumeration": 2
+  },
+  "page_accuracy": 89.5,
+  "duplicates": 2,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    2
+   ],
+   [
+    "False but no correction",
+    2
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 18561,
+  "output_tokens": 3074,
+  "thinking_tokens": 5035,
+  "seconds": 67.8,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0443
+ },
+ {
+  "pdf": "CIT4303_LECT3 Software Acquisition Strategies-1.pdf",
+  "pages": 6,
+  "target": 10,
+  "score": 92.0,
+  "validity": 88.9,
+  "grounding": 100.0,
+  "mix": 82.2,
+  "uniqueness": 88.9,
+  "language": 100.0,
+  "questions": 9,
+  "valid": 8,
+  "type_counts": {
+   "flashcard": 2,
+   "enumeration": 1,
+   "modified_true_false": 2,
+   "multiple_choice": 2,
+   "identification": 1,
+   "true_false": 1
+  },
+  "page_accuracy": 100.0,
+  "duplicates": 1,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 5344,
+  "output_tokens": 1239,
+  "thinking_tokens": 2335,
+  "seconds": 46.6,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0174
+ },
+ {
+  "pdf": "CIT4303_LECT4 Software Quality Economics-1.pdf",
+  "pages": 7,
+  "target": 10,
+  "score": 89.5,
+  "validity": 90.0,
+  "grounding": 87.5,
+  "mix": 90.0,
+  "uniqueness": 80.0,
+  "language": 100.0,
+  "questions": 10,
+  "valid": 9,
+  "type_counts": {
+   "flashcard": 2,
+   "identification": 2,
+   "multiple_choice": 2,
+   "enumeration": 1,
+   "true_false": 1,
+   "modified_true_false": 2
+  },
+  "page_accuracy": 75.0,
+  "duplicates": 2,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[flashcard] Why should an IT Manager evaluate software using total cost of ownersh -> Because software with a lower initial development "
+  ],
+  "input_tokens": 5864,
+  "output_tokens": 1137,
+  "thinking_tokens": 3314,
+  "seconds": 41.3,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0211
+ },
+ {
+  "pdf": "CIT4303_LECT5 Technology Cost AnalysisPART1.pdf",
+  "pages": 6,
+  "target": 10,
+  "score": 92.3,
+  "validity": 83.3,
+  "grounding": 100.0,
+  "mix": 78.3,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 6,
+  "valid": 5,
+  "type_counts": {
+   "flashcard": 1,
+   "identification": 1,
+   "multiple_choice": 1,
+   "true_false": 1,
+   "modified_true_false": 2
+  },
+  "page_accuracy": 100.0,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 5344,
+  "output_tokens": 4702,
+  "thinking_tokens": 2703,
+  "seconds": 49.7,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0318
+ },
+ {
+  "pdf": "M2. Lecture Presentation. Human Acts, and Ethical Theories and Reasoning.pdf",
+  "pages": 39,
+  "target": 31,
+  "score": 94.1,
+  "validity": 93.5,
+  "grounding": 96.0,
+  "mix": 96.9,
+  "uniqueness": 83.9,
+  "language": 100.0,
+  "questions": 31,
+  "valid": 29,
+  "type_counts": {
+   "enumeration": 3,
+   "flashcard": 5,
+   "multiple_choice": 6,
+   "identification": 8,
+   "true_false": 4,
+   "modified_true_false": 5
+  },
+  "page_accuracy": 60.0,
+  "duplicates": 5,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    2
+   ],
+   [
+    "underlined_word not in prompt",
+    1
+   ]
+  ],
+  "ungrounded_examples": [
+   "[multiple_choice] Who are the philosophers associated with Hedonism in the summary of et -> Aristippus and Epicurus"
+  ],
+  "input_tokens": 22777,
+  "output_tokens": 4007,
+  "thinking_tokens": 3569,
+  "seconds": 56.5,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0455
+ },
+ {
+  "pdf": "M3. Lecture Presentation. Intellectualism.pdf",
+  "pages": 25,
+  "target": 20,
+  "score": 91.9,
+  "validity": 90.0,
+  "grounding": 100.0,
+  "mix": 100.0,
+  "uniqueness": 75.0,
+  "language": 94.4,
+  "questions": 20,
+  "valid": 18,
+  "type_counts": {
+   "enumeration": 2,
+   "flashcard": 3,
+   "identification": 5,
+   "multiple_choice": 4,
+   "true_false": 3,
+   "modified_true_false": 3
+  },
+  "page_accuracy": 66.7,
+  "duplicates": 5,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "False but no correction",
+    2
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 15399,
+  "output_tokens": 2428,
+  "thinking_tokens": 4596,
+  "seconds": 48.1,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0379
+ },
+ {
+  "pdf": "M4. Lecture Presentation. Virtue Ethics.pdf",
+  "pages": 22,
+  "target": 18,
+  "score": 90.5,
+  "validity": 94.4,
+  "grounding": 100.0,
+  "mix": 91.7,
+  "uniqueness": 72.2,
+  "language": 94.1,
+  "questions": 18,
+  "valid": 17,
+  "type_counts": {
+   "identification": 5,
+   "multiple_choice": 4,
+   "flashcard": 3,
+   "true_false": 3,
+   "modified_true_false": 2,
+   "enumeration": 1
+  },
+  "page_accuracy": 71.4,
+  "duplicates": 5,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 13818,
+  "output_tokens": 2246,
+  "thinking_tokens": 965,
+  "seconds": 20.7,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0224
+ },
+ {
+  "pdf": "Module 1 - Introduction to Ethical Hacking.pdf",
+  "pages": 9,
+  "target": 10,
+  "score": 95.6,
+  "validity": 85.7,
+  "grounding": 100.0,
+  "mix": 92.1,
+  "uniqueness": 100.0,
+  "language": 100.0,
+  "questions": 7,
+  "valid": 6,
+  "type_counts": {
+   "flashcard": 1,
+   "multiple_choice": 1,
+   "identification": 2,
+   "enumeration": 1,
+   "true_false": 1,
+   "modified_true_false": 1
+  },
+  "page_accuracy": 80.0,
+  "duplicates": 0,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 6904,
+  "output_tokens": 1081,
+  "thinking_tokens": 3382,
+  "seconds": 33.8,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0219
+ },
+ {
+  "pdf": "Module 2 - Network Scanning.pdf",
+  "pages": 19,
+  "target": 15,
+  "score": 95.0,
+  "validity": 93.3,
+  "grounding": 100.0,
+  "mix": 95.0,
+  "uniqueness": 86.7,
+  "language": 100.0,
+  "questions": 15,
+  "valid": 14,
+  "type_counts": {
+   "flashcard": 2,
+   "multiple_choice": 3,
+   "identification": 4,
+   "enumeration": 2,
+   "true_false": 2,
+   "modified_true_false": 2
+  },
+  "page_accuracy": 50.0,
+  "duplicates": 2,
+  "schema_errors": [],
+  "item_problems": [
+   [
+    "underlined_word not in prompt",
+    1
+   ],
+   [
+    "False but no correction",
+    1
+   ]
+  ],
+  "ungrounded_examples": [],
+  "input_tokens": 12104,
+  "output_tokens": 1303,
+  "thinking_tokens": 2474,
+  "seconds": 27.4,
+  "finish_reason": "FinishReason.STOP",
+  "cost_usd": 0.0232
+ }
+]

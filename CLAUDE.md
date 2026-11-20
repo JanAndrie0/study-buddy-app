@@ -27,7 +27,7 @@ Full spec: `./docs/architecture.md` — read before adding any infrastructure.
 - DO call Gemini ONLY in `GeneratorService`. Grading, scheduling and studying MUST work with the network off.
 - DO load the prompt and schema from `assets/prompts/`; never inline prompt text in Dart code.
 - DO validate every generated item against the schema and drop invalid items; never crash on bad model output.
-- DO use the Vertex AI Gemini API backend in Firebase AI Logic, never the Gemini Developer API backend, for real lecture files.
+- DO use the Vertex AI Gemini API backend in Firebase AI Logic (now named "Agent Platform Gemini API"; `FirebaseAI.agentPlatform()` in Dart), never the Gemini Developer API backend, for real lecture files.
 - DO set the model name in exactly one place (`lib/config.dart`) and set `maxOutputTokens`.
 - DO use Drift for all persistence and write a migration for every schema change.
 - DO use the `fsrs` package for scheduling; DO NOT write custom spaced-repetition math.
@@ -37,4 +37,5 @@ Full spec: `./docs/architecture.md` — read before adding any infrastructure.
 - DO keep App Check enabled; use the debug provider only on your own device.
 - DO NOT commit `.env` files, keystores or service account keys.
 - PREFER simple, readable Dart over clever abstractions: this is a learning and portfolio repo.
+- DO grade modified true or false in the underline style (ADR-007): every item MUST have `underlined_word` appearing in `prompt` (case-insensitive) and, when the answer is False, a non-empty `correction`; drop items that break this.
 <!-- planfirst:end -->

@@ -1,0 +1,9 @@
+[
+ {
+  "pdf": "CIT4303_LECT4 Software Quality Economics-1.pdf",
+  "pages": 7,
+  "target": 10,
+  "score": 0.0,
+  "error": "ClientError: 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': 'Request contains an invalid argument.', 'status': 'INVALID_ARGUMENT'}}"
+ }
+]

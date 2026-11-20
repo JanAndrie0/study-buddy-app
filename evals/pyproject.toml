@@ -1,0 +1,14 @@
+[project]
+name = "study-buddy-evals"
+version = "0.1.0"
+description = "Scores the reviewer prompt + schema on real lecture PDFs (Phase 1)."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "google-genai",
+    "pypdf",
+    "jsonschema",
+    "rapidfuzz",
+]
+
+[tool.uv]
+package = false
