@@ -9,8 +9,9 @@ class ParseResult {
     this.error,
     this.deckTitle = '',
     this.subject = '',
-    this.explanationLanguage = 'taglish',
+    this.explanationLanguage = 'english',
     this.items = const [],
+    this.notes = const [],
     this.dropped = const [],
   });
 
@@ -24,10 +25,13 @@ class ParseResult {
   /// Items that passed every rule.
   final List<ReviewerItem> items;
 
+  /// Valid note sections (key points by topic), in lecture order.
+  final List<NoteSection> notes;
+
   /// One short reason per item we threw away, e.g. "#3 multiple_choice: 3 choices".
   final List<String> dropped;
 
-  bool get isUsable => error == null && items.isNotEmpty;
+  bool get isUsable => error == null && (items.isNotEmpty || notes.isNotEmpty);
 }
 
 /// Turns Gemini's JSON into validated [ReviewerItem]s.
@@ -44,7 +48,13 @@ class ReviewerParser {
   static const _difficulties = {'easy', 'medium', 'hard'};
 
   /// [pageCount] is the PDF's page count; `source_page` must be within it.
-  static ParseResult parse(String jsonText, {required int pageCount}) {
+  /// [allowedTypes] are the types the student asked for (null = all);
+  /// anything else is dropped.
+  static ParseResult parse(
+    String jsonText, {
+    required int pageCount,
+    Set<QuestionType>? allowedTypes,
+  }) {
     final Object? decoded;
     try {
       decoded = jsonDecode(jsonText);
@@ -55,16 +65,18 @@ class ReviewerParser {
       return const ParseResult(error: 'Expected a JSON object');
     }
     final rawQuestions = decoded['questions'];
-    if (rawQuestions is! List) {
-      return const ParseResult(error: 'Missing "questions" list');
+    final rawNotes = decoded['notes'];
+    if (rawQuestions is! List && rawNotes is! List) {
+      return const ParseResult(error: 'Missing "questions" and "notes" lists');
     }
 
     final items = <ReviewerItem>[];
     final dropped = <String>[];
     final seenPrompts = <String>{};
+    final questionList = rawQuestions is List ? rawQuestions : const [];
 
-    for (var i = 0; i < rawQuestions.length; i++) {
-      final raw = rawQuestions[i];
+    for (var i = 0; i < questionList.length; i++) {
+      final raw = questionList[i];
       final label = '#${i + 1} ${raw is Map ? raw['type'] : '?'}';
       if (items.length >= maxItems) {
         dropped.add('$label: over the $maxItems-item limit');
@@ -79,6 +91,11 @@ class ReviewerParser {
         dropped.add('$label: $problem');
         continue;
       }
+      final type = QuestionType.fromJsonName(raw['type'] as String?);
+      if (allowedTypes != null && !allowedTypes.contains(type)) {
+        dropped.add('$label: type not requested');
+        continue;
+      }
       final item = _toItem(raw);
       if (!seenPrompts.add(normalizeAnswer(item.prompt))) {
         dropped.add('$label: duplicate prompt');
@@ -87,12 +104,36 @@ class ReviewerParser {
       items.add(item);
     }
 
+    final notes = <NoteSection>[];
+    final noteList = rawNotes is List ? rawNotes : const [];
+    for (var i = 0; i < noteList.length; i++) {
+      final raw = noteList[i];
+      final label = 'note #${i + 1}';
+      if (raw is! Map<String, dynamic>) {
+        dropped.add('$label: not an object');
+        continue;
+      }
+      final heading = _string(raw['heading']);
+      final points = _stringList(raw['points']);
+      final page = raw['source_page'];
+      if (heading.isEmpty) {
+        dropped.add('$label: empty heading');
+      } else if (points.isEmpty) {
+        dropped.add('$label: no points');
+      } else if (page is! int || page < 1 || page > pageCount) {
+        dropped.add('$label: source_page $page outside 1..$pageCount');
+      } else {
+        notes.add(NoteSection(heading: heading, points: points, sourcePage: page));
+      }
+    }
+
     final language = _string(decoded['explanation_language']);
     return ParseResult(
       deckTitle: _string(decoded['deck_title']),
       subject: _string(decoded['subject']),
-      explanationLanguage: _languages.contains(language) ? language : 'taglish',
+      explanationLanguage: _languages.contains(language) ? language : 'english',
       items: items,
+      notes: notes,
       dropped: dropped,
     );
   }

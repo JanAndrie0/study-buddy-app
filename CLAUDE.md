@@ -38,4 +38,6 @@ Full spec: `./docs/architecture.md` — read before adding any infrastructure.
 - DO NOT commit `.env` files, keystores or service account keys.
 - PREFER simple, readable Dart over clever abstractions: this is a learning and portfolio repo.
 - DO grade modified true or false in the underline style (ADR-007): every item MUST have `underlined_word` appearing in `prompt` (case-insensitive) and, when the answer is False, a non-empty `correction`; drop items that break this.
+- DO make every new field in `reviewer_schema.json` required (empty list/string when not applicable): Gemini skips optional fields.
+- DO keep `assets/prompts/question_mix.json` as the only source of question-type shares; the app and the evals both read it (ADR-008).
 <!-- planfirst:end -->

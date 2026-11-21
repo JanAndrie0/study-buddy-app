@@ -70,3 +70,12 @@ class ReviewerItem {
   /// For true/false and modified true/false.
   bool get isTrue => answer == 'True';
 }
+
+/// One topic of the lecture notes: a heading and its key points (ADR-008).
+class NoteSection {
+  const NoteSection({required this.heading, required this.points, required this.sourcePage});
+
+  final String heading;
+  final List<String> points;
+  final int sourcePage;
+}

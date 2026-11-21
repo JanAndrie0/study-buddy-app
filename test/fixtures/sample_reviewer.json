@@ -2,6 +2,24 @@
   "deck_title": "Software Quality Economics",
   "subject": "CIT4303",
   "explanation_language": "taglish",
+  "notes": [
+    {
+      "heading": "Cost of Quality (CoQ)",
+      "source_page": 2,
+      "points": [
+        "Kabuuang gastos para maiwasan, mahanap at maayos ang defects.",
+        "Apat na categories: prevention, appraisal, internal failure, external failure."
+      ]
+    },
+    {
+      "heading": "Failure costs",
+      "source_page": 4,
+      "points": [
+        "Internal failure: defects na nahanap bago i-release.",
+        "External failure: defects na nahanap na ng customer, kaya mas mahal."
+      ]
+    }
+  ],
   "questions": [
     {
       "type": "flashcard",

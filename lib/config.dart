@@ -26,6 +26,20 @@ class AppConfig {
   static const int minQuestions = 10;
   static const int maxQuestions = 40;
 
+  static int targetQuestions(int pageCount) =>
+      (pageCount * questionsPerPage).round().clamp(minQuestions, maxQuestions);
+
+  /// Give up on Gemini after this long and offer Retry. Flash-Lite took
+  /// ~14 s per deck in the evals (Flash ~58 s), so 2 minutes is generous.
+  static const Duration generationTimeout = Duration(minutes: 2);
+
+  /// Above this many pages, warn that the deck may miss later parts.
+  static const int longPdfPages = 80;
+
+  /// Default explanation language (ADR-009: English; Taglish and Filipino
+  /// stay available in Settings and on Add Lecture).
+  static const String defaultLanguage = 'english';
+
   /// Firebase AI Logic rejects requests over 20 MB in total. The PDF is sent
   /// base64-encoded, which makes it ~33% bigger, so we cap the raw file at
   /// 15 MB to stay under that limit.

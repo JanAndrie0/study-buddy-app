@@ -1,0 +1,9 @@
+{
+  "_comment": "Base share of each question type. The app and evals/run_eval.py keep only the types the student picked and re-scale the shares to add up to 1.",
+  "identification": 0.25,
+  "multiple_choice": 0.20,
+  "flashcard": 0.15,
+  "true_false": 0.15,
+  "modified_true_false": 0.15,
+  "enumeration": 0.10
+}

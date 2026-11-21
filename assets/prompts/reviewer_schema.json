@@ -15,10 +15,26 @@
       "enum": ["english", "filipino", "taglish"],
       "description": "Language used for every explanation in this deck."
     },
+    "notes": {
+      "type": "array",
+      "description": "Key points by topic, in lecture order. Empty list when notes were not requested.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "heading": { "type": "string", "description": "Short topic name." },
+          "source_page": { "type": "integer", "minimum": 1, "description": "PDF page where the topic starts." },
+          "points": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "3 to 6 short key points in explanation_language."
+          }
+        },
+        "required": ["heading", "source_page", "points"]
+      }
+    },
     "questions": {
       "type": "array",
-      "minItems": 1,
-      "description": "The reviewer items. Each item must follow the rules for its type.",
+      "description": "The reviewer items, only of the requested types. Empty list when no questions were requested.",
       "items": {
         "type": "object",
         "properties": {
@@ -85,5 +101,5 @@
       }
     }
   },
-  "required": ["deck_title", "subject", "explanation_language", "questions"]
+  "required": ["deck_title", "subject", "explanation_language", "notes", "questions"]
 }

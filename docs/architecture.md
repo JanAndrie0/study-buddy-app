@@ -219,6 +219,18 @@ flowchart TB
 - **Tradeoff:** Easier than finding the wrong word yourself, because the underline points at what to check. It also needs a visible underline in the study screen.
 - **Revisit when:** you want a harder "challenge mode". Then add a setting that hides the underline, and grade `underlined_word` + `correction` together.
 
+### ADR-008: The student chooses what each deck contains; notes come from the same single call
+- **Choice:** On Add Lecture, after the explanation language, the student picks: a quiz or not, and which of 5 quiz types (multiple choice, identification, modified true or false ticked by default; enumeration, true or false optional), plus **Flashcards** and/or **Notes** (key points by topic: heading, 3–6 points, source page). At least one must be picked. The choices fill the prompt (`{{question_mix}}`, `{{target_questions}}`, `{{notes_instruction}}`). Notes come from the **same** structured-output call (ADR-003 stays: one call per PDF) through a **required** top-level `notes` array in `reviewer_schema.json`. Base type shares live in `assets/prompts/question_mix.json`, read by the app and the evals (ADR-006). Local DB schema v2 adds `note_sections` with a generated, data-checked v1 → v2 migration test.
+- **Why:** Students review differently: some want only flashcards before a quiz, some want notes to read on the jeep. Generating only what they asked for also saves output tokens. One call keeps cost, latency and the offline-after-generation design unchanged.
+- **Tradeoff:** Notes add output tokens (and time) when ticked. Decks generated with fewer types can't be "expanded" later without another call. The parser also drops any question type that wasn't asked for, as a safety net.
+- **Revisit when:** a deck with notes regularly hits `maxOutputTokens` or takes over 60 s; then split notes into their own call.
+
+### ADR-009: Default explanation language is English (supersedes the default in ADR-005)
+- **Choice:** New installs and new decks default to **English** explanations and notes. Taglish and Filipino stay one tap away (Add Lecture, Settings). The rest of ADR-005 (one chosen language per deck, generated with the deck) is unchanged. Local DB schema v4 changes the `app_settings.language` default; the v3 → v4 step rebuilds the table and switches the untouched Taglish row to English. Migrations now use Drift's `stepByStep` with frozen per-version schemas.
+- **Why:** The user's choice after using the app: lecture PDFs are in English, and English explanations read most naturally next to them. Taglish remains a feature, not the default.
+- **Tradeoff:** The Filipino-first feel is now opt-in. Old decks keep the language they were made in.
+- **Revisit when:** classmates (Add Later: 30–50 users) mostly switch to Taglish in Settings.
+
 ## Cost Estimate
 - **Monthly now (just you):** about $1–4. A 30-page lecture is roughly 8–10k input tokens and 6–10k output tokens on Gemini Flash, so a few cents per deck. Even 50 decks a month plus eval runs stays well under the ~$10/month AI Pro grant. Firebase App Check and AI Logic themselves add nothing at this scale.
 - **Monthly at next stage (30–50 classmates):** about $5–20, mostly Gemini generation, plus Firestore reads once sync exists. Set per-user generation limits before inviting people.
@@ -255,12 +267,16 @@ flowchart TB
 - DO NOT commit `.env` files, keystores or service account keys. (`google-services.json` is not a secret, but App Check must be enforced before the repo goes public.)
 - PREFER simple, readable Dart over clever abstractions: this is a learning and portfolio repo.
 - DO grade modified true or false in the underline style (ADR-007): every item MUST have `underlined_word` appearing in `prompt` (case-insensitive) and, when the answer is False, a non-empty `correction`; drop items that break this.
+- DO make every new field in `reviewer_schema.json` **required** (use an empty list/string when not applicable). Gemini's constrained decoding skips optional fields even when the prompt asks for them.
+- DO keep `assets/prompts/question_mix.json` as the only source of question-type shares; the app and `evals/run_eval.py` both read it (ADR-008).
 
 ## Changelog
 | Date | Reason | Changes |
 |------|--------|---------|
 | 2026-11-20 | Initial generation (moved Study Buddy from AWS + React to Google Cloud + Flutter) | — |
 | 2026-11-20 | Modified true or false format chosen while designing `reviewer_schema.json` | Added ADR-007 (underline style, supersedes the modified T/F rule of ADR-004; ADR-004 left unchanged). Updated the Local grader role and added an agent rule. Schema field `wrong_word` → `underlined_word` (always present). Note: Google renamed the "Vertex AI Gemini API" to the **"Agent Platform Gemini API"**; in `firebase_ai` 5.x the backend is `FirebaseAI.agentPlatform()`. |
+| 2026-11-21 | User asked to choose quiz types and add flashcards / notes per lecture | Added ADR-008 (student-chosen content; notes in the same single call via a required `notes` array; shared `question_mix.json`; DB schema v2 with `note_sections` and a tested migration). Added agent rules: new schema fields must be required; one source for type shares. ADR-003, ADR-006 unchanged. |
+| 2026-11-21 | Design feedback #3: default language English | Added ADR-009 (English default; supersedes only the default in ADR-005, which is left unchanged). DB schema v4 + step-by-step migrations with frozen per-version schemas. |
 
 ---
 To update, run `/planfirst` again.

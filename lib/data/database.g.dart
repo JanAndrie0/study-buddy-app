@@ -2149,6 +2149,776 @@ class ReviewLogsCompanion extends UpdateCompanion<ReviewLog> {
   }
 }
 
+class $NoteSectionsTable extends NoteSections
+    with TableInfo<$NoteSectionsTable, NoteSectionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NoteSectionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _deckIdMeta = const VerificationMeta('deckId');
+  @override
+  late final GeneratedColumn<int> deckId = GeneratedColumn<int>(
+    'deck_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES decks (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _headingMeta = const VerificationMeta(
+    'heading',
+  );
+  @override
+  late final GeneratedColumn<String> heading = GeneratedColumn<String>(
+    'heading',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> points =
+      GeneratedColumn<String>(
+        'points',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<List<String>>($NoteSectionsTable.$converterpoints);
+  static const VerificationMeta _sourcePageMeta = const VerificationMeta(
+    'sourcePage',
+  );
+  @override
+  late final GeneratedColumn<int> sourcePage = GeneratedColumn<int>(
+    'source_page',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    deckId,
+    position,
+    heading,
+    points,
+    sourcePage,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_sections';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NoteSectionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('deck_id')) {
+      context.handle(
+        _deckIdMeta,
+        deckId.isAcceptableOrUnknown(data['deck_id']!, _deckIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deckIdMeta);
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('heading')) {
+      context.handle(
+        _headingMeta,
+        heading.isAcceptableOrUnknown(data['heading']!, _headingMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_headingMeta);
+    }
+    if (data.containsKey('source_page')) {
+      context.handle(
+        _sourcePageMeta,
+        sourcePage.isAcceptableOrUnknown(data['source_page']!, _sourcePageMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sourcePageMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NoteSectionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NoteSectionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      deckId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deck_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      heading: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}heading'],
+      )!,
+      points: $NoteSectionsTable.$converterpoints.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}points'],
+        )!,
+      ),
+      sourcePage: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source_page'],
+      )!,
+    );
+  }
+
+  @override
+  $NoteSectionsTable createAlias(String alias) {
+    return $NoteSectionsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<List<String>, String> $converterpoints =
+      const StringListConverter();
+}
+
+class NoteSectionRow extends DataClass implements Insertable<NoteSectionRow> {
+  final int id;
+  final int deckId;
+
+  /// Order in the lecture (0, 1, 2…).
+  final int position;
+  final String heading;
+  final List<String> points;
+  final int sourcePage;
+  const NoteSectionRow({
+    required this.id,
+    required this.deckId,
+    required this.position,
+    required this.heading,
+    required this.points,
+    required this.sourcePage,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['deck_id'] = Variable<int>(deckId);
+    map['position'] = Variable<int>(position);
+    map['heading'] = Variable<String>(heading);
+    {
+      map['points'] = Variable<String>(
+        $NoteSectionsTable.$converterpoints.toSql(points),
+      );
+    }
+    map['source_page'] = Variable<int>(sourcePage);
+    return map;
+  }
+
+  NoteSectionsCompanion toCompanion(bool nullToAbsent) {
+    return NoteSectionsCompanion(
+      id: Value(id),
+      deckId: Value(deckId),
+      position: Value(position),
+      heading: Value(heading),
+      points: Value(points),
+      sourcePage: Value(sourcePage),
+    );
+  }
+
+  factory NoteSectionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NoteSectionRow(
+      id: serializer.fromJson<int>(json['id']),
+      deckId: serializer.fromJson<int>(json['deckId']),
+      position: serializer.fromJson<int>(json['position']),
+      heading: serializer.fromJson<String>(json['heading']),
+      points: serializer.fromJson<List<String>>(json['points']),
+      sourcePage: serializer.fromJson<int>(json['sourcePage']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'deckId': serializer.toJson<int>(deckId),
+      'position': serializer.toJson<int>(position),
+      'heading': serializer.toJson<String>(heading),
+      'points': serializer.toJson<List<String>>(points),
+      'sourcePage': serializer.toJson<int>(sourcePage),
+    };
+  }
+
+  NoteSectionRow copyWith({
+    int? id,
+    int? deckId,
+    int? position,
+    String? heading,
+    List<String>? points,
+    int? sourcePage,
+  }) => NoteSectionRow(
+    id: id ?? this.id,
+    deckId: deckId ?? this.deckId,
+    position: position ?? this.position,
+    heading: heading ?? this.heading,
+    points: points ?? this.points,
+    sourcePage: sourcePage ?? this.sourcePage,
+  );
+  NoteSectionRow copyWithCompanion(NoteSectionsCompanion data) {
+    return NoteSectionRow(
+      id: data.id.present ? data.id.value : this.id,
+      deckId: data.deckId.present ? data.deckId.value : this.deckId,
+      position: data.position.present ? data.position.value : this.position,
+      heading: data.heading.present ? data.heading.value : this.heading,
+      points: data.points.present ? data.points.value : this.points,
+      sourcePage: data.sourcePage.present
+          ? data.sourcePage.value
+          : this.sourcePage,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteSectionRow(')
+          ..write('id: $id, ')
+          ..write('deckId: $deckId, ')
+          ..write('position: $position, ')
+          ..write('heading: $heading, ')
+          ..write('points: $points, ')
+          ..write('sourcePage: $sourcePage')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, deckId, position, heading, points, sourcePage);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NoteSectionRow &&
+          other.id == this.id &&
+          other.deckId == this.deckId &&
+          other.position == this.position &&
+          other.heading == this.heading &&
+          other.points == this.points &&
+          other.sourcePage == this.sourcePage);
+}
+
+class NoteSectionsCompanion extends UpdateCompanion<NoteSectionRow> {
+  final Value<int> id;
+  final Value<int> deckId;
+  final Value<int> position;
+  final Value<String> heading;
+  final Value<List<String>> points;
+  final Value<int> sourcePage;
+  const NoteSectionsCompanion({
+    this.id = const Value.absent(),
+    this.deckId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.heading = const Value.absent(),
+    this.points = const Value.absent(),
+    this.sourcePage = const Value.absent(),
+  });
+  NoteSectionsCompanion.insert({
+    this.id = const Value.absent(),
+    required int deckId,
+    required int position,
+    required String heading,
+    required List<String> points,
+    required int sourcePage,
+  }) : deckId = Value(deckId),
+       position = Value(position),
+       heading = Value(heading),
+       points = Value(points),
+       sourcePage = Value(sourcePage);
+  static Insertable<NoteSectionRow> custom({
+    Expression<int>? id,
+    Expression<int>? deckId,
+    Expression<int>? position,
+    Expression<String>? heading,
+    Expression<String>? points,
+    Expression<int>? sourcePage,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deckId != null) 'deck_id': deckId,
+      if (position != null) 'position': position,
+      if (heading != null) 'heading': heading,
+      if (points != null) 'points': points,
+      if (sourcePage != null) 'source_page': sourcePage,
+    });
+  }
+
+  NoteSectionsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? deckId,
+    Value<int>? position,
+    Value<String>? heading,
+    Value<List<String>>? points,
+    Value<int>? sourcePage,
+  }) {
+    return NoteSectionsCompanion(
+      id: id ?? this.id,
+      deckId: deckId ?? this.deckId,
+      position: position ?? this.position,
+      heading: heading ?? this.heading,
+      points: points ?? this.points,
+      sourcePage: sourcePage ?? this.sourcePage,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (deckId.present) {
+      map['deck_id'] = Variable<int>(deckId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (heading.present) {
+      map['heading'] = Variable<String>(heading.value);
+    }
+    if (points.present) {
+      map['points'] = Variable<String>(
+        $NoteSectionsTable.$converterpoints.toSql(points.value),
+      );
+    }
+    if (sourcePage.present) {
+      map['source_page'] = Variable<int>(sourcePage.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteSectionsCompanion(')
+          ..write('id: $id, ')
+          ..write('deckId: $deckId, ')
+          ..write('position: $position, ')
+          ..write('heading: $heading, ')
+          ..write('points: $points, ')
+          ..write('sourcePage: $sourcePage')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AppSettingsTable extends AppSettings
+    with TableInfo<$AppSettingsTable, AppSetting> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AppSettingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('english'),
+  );
+  static const VerificationMeta _newCardsPerDayMeta = const VerificationMeta(
+    'newCardsPerDay',
+  );
+  @override
+  late final GeneratedColumn<int> newCardsPerDay = GeneratedColumn<int>(
+    'new_cards_per_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(20),
+  );
+  static const VerificationMeta _themeModeMeta = const VerificationMeta(
+    'themeMode',
+  );
+  @override
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+    'theme_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('system'),
+  );
+  static const VerificationMeta _onboardingDoneMeta = const VerificationMeta(
+    'onboardingDone',
+  );
+  @override
+  late final GeneratedColumn<bool> onboardingDone = GeneratedColumn<bool>(
+    'onboarding_done',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("onboarding_done" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    language,
+    newCardsPerDay,
+    themeMode,
+    onboardingDone,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'app_settings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AppSetting> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
+    if (data.containsKey('new_cards_per_day')) {
+      context.handle(
+        _newCardsPerDayMeta,
+        newCardsPerDay.isAcceptableOrUnknown(
+          data['new_cards_per_day']!,
+          _newCardsPerDayMeta,
+        ),
+      );
+    }
+    if (data.containsKey('theme_mode')) {
+      context.handle(
+        _themeModeMeta,
+        themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
+      );
+    }
+    if (data.containsKey('onboarding_done')) {
+      context.handle(
+        _onboardingDoneMeta,
+        onboardingDone.isAcceptableOrUnknown(
+          data['onboarding_done']!,
+          _onboardingDoneMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  AppSetting map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AppSetting(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
+      newCardsPerDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_cards_per_day'],
+      )!,
+      themeMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_mode'],
+      )!,
+      onboardingDone: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}onboarding_done'],
+      )!,
+    );
+  }
+
+  @override
+  $AppSettingsTable createAlias(String alias) {
+    return $AppSettingsTable(attachedDatabase, alias);
+  }
+}
+
+class AppSetting extends DataClass implements Insertable<AppSetting> {
+  final int id;
+
+  /// Default explanation language for new decks (ADR-009: English).
+  final String language;
+
+  /// Max brand-new cards introduced per day (reviews are not limited).
+  final int newCardsPerDay;
+
+  /// "system", "light" or "dark".
+  final String themeMode;
+
+  /// Set after the 3 onboarding screens (Phase 5).
+  final bool onboardingDone;
+  const AppSetting({
+    required this.id,
+    required this.language,
+    required this.newCardsPerDay,
+    required this.themeMode,
+    required this.onboardingDone,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['language'] = Variable<String>(language);
+    map['new_cards_per_day'] = Variable<int>(newCardsPerDay);
+    map['theme_mode'] = Variable<String>(themeMode);
+    map['onboarding_done'] = Variable<bool>(onboardingDone);
+    return map;
+  }
+
+  AppSettingsCompanion toCompanion(bool nullToAbsent) {
+    return AppSettingsCompanion(
+      id: Value(id),
+      language: Value(language),
+      newCardsPerDay: Value(newCardsPerDay),
+      themeMode: Value(themeMode),
+      onboardingDone: Value(onboardingDone),
+    );
+  }
+
+  factory AppSetting.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AppSetting(
+      id: serializer.fromJson<int>(json['id']),
+      language: serializer.fromJson<String>(json['language']),
+      newCardsPerDay: serializer.fromJson<int>(json['newCardsPerDay']),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
+      onboardingDone: serializer.fromJson<bool>(json['onboardingDone']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'language': serializer.toJson<String>(language),
+      'newCardsPerDay': serializer.toJson<int>(newCardsPerDay),
+      'themeMode': serializer.toJson<String>(themeMode),
+      'onboardingDone': serializer.toJson<bool>(onboardingDone),
+    };
+  }
+
+  AppSetting copyWith({
+    int? id,
+    String? language,
+    int? newCardsPerDay,
+    String? themeMode,
+    bool? onboardingDone,
+  }) => AppSetting(
+    id: id ?? this.id,
+    language: language ?? this.language,
+    newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
+    themeMode: themeMode ?? this.themeMode,
+    onboardingDone: onboardingDone ?? this.onboardingDone,
+  );
+  AppSetting copyWithCompanion(AppSettingsCompanion data) {
+    return AppSetting(
+      id: data.id.present ? data.id.value : this.id,
+      language: data.language.present ? data.language.value : this.language,
+      newCardsPerDay: data.newCardsPerDay.present
+          ? data.newCardsPerDay.value
+          : this.newCardsPerDay,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
+      onboardingDone: data.onboardingDone.present
+          ? data.onboardingDone.value
+          : this.onboardingDone,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSetting(')
+          ..write('id: $id, ')
+          ..write('language: $language, ')
+          ..write('newCardsPerDay: $newCardsPerDay, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('onboardingDone: $onboardingDone')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, language, newCardsPerDay, themeMode, onboardingDone);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AppSetting &&
+          other.id == this.id &&
+          other.language == this.language &&
+          other.newCardsPerDay == this.newCardsPerDay &&
+          other.themeMode == this.themeMode &&
+          other.onboardingDone == this.onboardingDone);
+}
+
+class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
+  final Value<int> id;
+  final Value<String> language;
+  final Value<int> newCardsPerDay;
+  final Value<String> themeMode;
+  final Value<bool> onboardingDone;
+  const AppSettingsCompanion({
+    this.id = const Value.absent(),
+    this.language = const Value.absent(),
+    this.newCardsPerDay = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.onboardingDone = const Value.absent(),
+  });
+  AppSettingsCompanion.insert({
+    this.id = const Value.absent(),
+    this.language = const Value.absent(),
+    this.newCardsPerDay = const Value.absent(),
+    this.themeMode = const Value.absent(),
+    this.onboardingDone = const Value.absent(),
+  });
+  static Insertable<AppSetting> custom({
+    Expression<int>? id,
+    Expression<String>? language,
+    Expression<int>? newCardsPerDay,
+    Expression<String>? themeMode,
+    Expression<bool>? onboardingDone,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (language != null) 'language': language,
+      if (newCardsPerDay != null) 'new_cards_per_day': newCardsPerDay,
+      if (themeMode != null) 'theme_mode': themeMode,
+      if (onboardingDone != null) 'onboarding_done': onboardingDone,
+    });
+  }
+
+  AppSettingsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? language,
+    Value<int>? newCardsPerDay,
+    Value<String>? themeMode,
+    Value<bool>? onboardingDone,
+  }) {
+    return AppSettingsCompanion(
+      id: id ?? this.id,
+      language: language ?? this.language,
+      newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
+      themeMode: themeMode ?? this.themeMode,
+      onboardingDone: onboardingDone ?? this.onboardingDone,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (newCardsPerDay.present) {
+      map['new_cards_per_day'] = Variable<int>(newCardsPerDay.value);
+    }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
+    if (onboardingDone.present) {
+      map['onboarding_done'] = Variable<bool>(onboardingDone.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AppSettingsCompanion(')
+          ..write('id: $id, ')
+          ..write('language: $language, ')
+          ..write('newCardsPerDay: $newCardsPerDay, ')
+          ..write('themeMode: $themeMode, ')
+          ..write('onboardingDone: $onboardingDone')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2156,6 +2926,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $QuestionsTable questions = $QuestionsTable(this);
   late final $CardStatesTable cardStates = $CardStatesTable(this);
   late final $ReviewLogsTable reviewLogs = $ReviewLogsTable(this);
+  late final $NoteSectionsTable noteSections = $NoteSectionsTable(this);
+  late final $AppSettingsTable appSettings = $AppSettingsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2165,6 +2937,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     questions,
     cardStates,
     reviewLogs,
+    noteSections,
+    appSettings,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2188,6 +2962,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('review_logs', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'decks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_sections', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -2230,6 +3011,24 @@ final class $$DecksTableReferences
     ).filter((f) => f.deckId.id.sqlEquals($_itemColumn<int>('id')!));
 
     final cache = $_typedResult.readTableOrNull(_questionsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$NoteSectionsTable, List<NoteSectionRow>>
+  _noteSectionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.noteSections,
+    aliasName: 'decks__id__note_sections__deck_id',
+  );
+
+  $$NoteSectionsTableProcessedTableManager get noteSectionsRefs {
+    final manager = $$NoteSectionsTableTableManager(
+      $_db,
+      $_db.noteSections,
+    ).filter((f) => f.deckId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_noteSectionsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -2300,6 +3099,31 @@ class $$DecksTableFilterComposer extends Composer<_$AppDatabase, $DecksTable> {
           }) => $$QuestionsTableFilterComposer(
             $db: $db,
             $table: $db.questions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> noteSectionsRefs(
+    Expression<bool> Function($$NoteSectionsTableFilterComposer f) f,
+  ) {
+    final $$NoteSectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteSections,
+      getReferencedColumn: (t) => t.deckId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteSectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.noteSections,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -2419,6 +3243,31 @@ class $$DecksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> noteSectionsRefs<T extends Object>(
+    Expression<T> Function($$NoteSectionsTableAnnotationComposer a) f,
+  ) {
+    final $$NoteSectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteSections,
+      getReferencedColumn: (t) => t.deckId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteSectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteSections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$DecksTableTableManager
@@ -2434,7 +3283,7 @@ class $$DecksTableTableManager
           $$DecksTableUpdateCompanionBuilder,
           (Deck, $$DecksTableReferences),
           Deck,
-          PrefetchHooks Function({bool questionsRefs})
+          PrefetchHooks Function({bool questionsRefs, bool noteSectionsRefs})
         > {
   $$DecksTableTableManager(_$AppDatabase db, $DecksTable table)
     : super(
@@ -2495,33 +3344,61 @@ class $$DecksTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({questionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [if (questionsRefs) db.questions],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (questionsRefs)
-                    await $_getPrefetchedDataByColumns<
-                      Deck,
-                      $DecksTable,
-                      Question,
-                      $QuestionsTable
-                    >(
-                      currentTable: table,
-                      referencedTable: $$DecksTableReferences
-                          ._questionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$DecksTableReferences(db, table, p0).questionsRefs,
-                      currentColumn: 'id',
-                      referencedColumn: 'deck_id',
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({questionsRefs = false, noteSectionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (questionsRefs) db.questions,
+                    if (noteSectionsRefs) db.noteSections,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (questionsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Deck,
+                          $DecksTable,
+                          Question,
+                          $QuestionsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DecksTableReferences
+                              ._questionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DecksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).questionsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'deck_id',
+                          typedResults: items,
+                        ),
+                      if (noteSectionsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          Deck,
+                          $DecksTable,
+                          NoteSectionRow,
+                          $NoteSectionsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$DecksTableReferences
+                              ._noteSectionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DecksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteSectionsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'deck_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -2538,7 +3415,7 @@ typedef $$DecksTableProcessedTableManager =
       $$DecksTableUpdateCompanionBuilder,
       (Deck, $$DecksTableReferences),
       Deck,
-      PrefetchHooks Function({bool questionsRefs})
+      PrefetchHooks Function({bool questionsRefs, bool noteSectionsRefs})
     >;
 typedef $$QuestionsTableCreateCompanionBuilder = QuestionsCompanion Function({
   Value<int> id,
@@ -3889,6 +4766,544 @@ typedef $$ReviewLogsTableProcessedTableManager =
       ReviewLog,
       PrefetchHooks Function({bool questionId})
     >;
+typedef $$NoteSectionsTableCreateCompanionBuilder =
+    NoteSectionsCompanion Function({
+      Value<int> id,
+      required int deckId,
+      required int position,
+      required String heading,
+      required List<String> points,
+      required int sourcePage,
+    });
+typedef $$NoteSectionsTableUpdateCompanionBuilder =
+    NoteSectionsCompanion Function({
+      Value<int> id,
+      Value<int> deckId,
+      Value<int> position,
+      Value<String> heading,
+      Value<List<String>> points,
+      Value<int> sourcePage,
+    });
+
+final class $$NoteSectionsTableReferences
+    extends BaseReferences<_$AppDatabase, $NoteSectionsTable, NoteSectionRow> {
+  $$NoteSectionsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $DecksTable _deckIdTable(_$AppDatabase db) =>
+      db.decks.createAlias('note_sections__deck_id__decks__id');
+
+  $$DecksTableProcessedTableManager get deckId {
+    final $_column = $_itemColumn<int>('deck_id')!;
+
+    final manager = $$DecksTableTableManager(
+      $_db,
+      $_db.decks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_deckIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$NoteSectionsTableFilterComposer
+    extends Composer<_$AppDatabase, $NoteSectionsTable> {
+  $$NoteSectionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get heading => $composableBuilder(
+    column: $table.heading,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+  get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get sourcePage => $composableBuilder(
+    column: $table.sourcePage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DecksTableFilterComposer get deckId {
+    final $$DecksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deckId,
+      referencedTable: $db.decks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DecksTableFilterComposer(
+            $db: $db,
+            $table: $db.decks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteSectionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NoteSectionsTable> {
+  $$NoteSectionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get heading => $composableBuilder(
+    column: $table.heading,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get points => $composableBuilder(
+    column: $table.points,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sourcePage => $composableBuilder(
+    column: $table.sourcePage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DecksTableOrderingComposer get deckId {
+    final $$DecksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deckId,
+      referencedTable: $db.decks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DecksTableOrderingComposer(
+            $db: $db,
+            $table: $db.decks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteSectionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NoteSectionsTable> {
+  $$NoteSectionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get heading =>
+      $composableBuilder(column: $table.heading, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<List<String>, String> get points =>
+      $composableBuilder(column: $table.points, builder: (column) => column);
+
+  GeneratedColumn<int> get sourcePage => $composableBuilder(
+    column: $table.sourcePage,
+    builder: (column) => column,
+  );
+
+  $$DecksTableAnnotationComposer get deckId {
+    final $$DecksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.deckId,
+      referencedTable: $db.decks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DecksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.decks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteSectionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NoteSectionsTable,
+          NoteSectionRow,
+          $$NoteSectionsTableFilterComposer,
+          $$NoteSectionsTableOrderingComposer,
+          $$NoteSectionsTableAnnotationComposer,
+          $$NoteSectionsTableCreateCompanionBuilder,
+          $$NoteSectionsTableUpdateCompanionBuilder,
+          (NoteSectionRow, $$NoteSectionsTableReferences),
+          NoteSectionRow,
+          PrefetchHooks Function({bool deckId})
+        > {
+  $$NoteSectionsTableTableManager(_$AppDatabase db, $NoteSectionsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NoteSectionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NoteSectionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NoteSectionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> deckId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> heading = const Value.absent(),
+                Value<List<String>> points = const Value.absent(),
+                Value<int> sourcePage = const Value.absent(),
+              }) => NoteSectionsCompanion(
+                id: id,
+                deckId: deckId,
+                position: position,
+                heading: heading,
+                points: points,
+                sourcePage: sourcePage,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int deckId,
+                required int position,
+                required String heading,
+                required List<String> points,
+                required int sourcePage,
+              }) => NoteSectionsCompanion.insert(
+                id: id,
+                deckId: deckId,
+                position: position,
+                heading: heading,
+                points: points,
+                sourcePage: sourcePage,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$NoteSectionsTable, NoteSectionRow>(table),
+                  $$NoteSectionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({deckId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (deckId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.deckId,
+                        referencedTable: $$NoteSectionsTableReferences
+                            ._deckIdTable(db),
+                        referencedColumn: $$NoteSectionsTableReferences
+                            ._deckIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$NoteSectionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NoteSectionsTable,
+      NoteSectionRow,
+      $$NoteSectionsTableFilterComposer,
+      $$NoteSectionsTableOrderingComposer,
+      $$NoteSectionsTableAnnotationComposer,
+      $$NoteSectionsTableCreateCompanionBuilder,
+      $$NoteSectionsTableUpdateCompanionBuilder,
+      (NoteSectionRow, $$NoteSectionsTableReferences),
+      NoteSectionRow,
+      PrefetchHooks Function({bool deckId})
+    >;
+typedef $$AppSettingsTableCreateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      Value<String> language,
+      Value<int> newCardsPerDay,
+      Value<String> themeMode,
+      Value<bool> onboardingDone,
+    });
+typedef $$AppSettingsTableUpdateCompanionBuilder =
+    AppSettingsCompanion Function({
+      Value<int> id,
+      Value<String> language,
+      Value<int> newCardsPerDay,
+      Value<String> themeMode,
+      Value<bool> onboardingDone,
+    });
+
+class $$AppSettingsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$AppSettingsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$AppSettingsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AppSettingsTable> {
+  $$AppSettingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
+
+  GeneratedColumn<bool> get onboardingDone => $composableBuilder(
+    column: $table.onboardingDone,
+    builder: (column) => column,
+  );
+}
+
+class $$AppSettingsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AppSettingsTable,
+          AppSetting,
+          $$AppSettingsTableFilterComposer,
+          $$AppSettingsTableOrderingComposer,
+          $$AppSettingsTableAnnotationComposer,
+          $$AppSettingsTableCreateCompanionBuilder,
+          $$AppSettingsTableUpdateCompanionBuilder,
+          (
+            AppSetting,
+            BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>,
+          ),
+          AppSetting,
+          PrefetchHooks Function()
+        > {
+  $$AppSettingsTableTableManager(_$AppDatabase db, $AppSettingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AppSettingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AppSettingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AppSettingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<int> newCardsPerDay = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
+                Value<bool> onboardingDone = const Value.absent(),
+              }) => AppSettingsCompanion(
+                id: id,
+                language: language,
+                newCardsPerDay: newCardsPerDay,
+                themeMode: themeMode,
+                onboardingDone: onboardingDone,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<int> newCardsPerDay = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
+                Value<bool> onboardingDone = const Value.absent(),
+              }) => AppSettingsCompanion.insert(
+                id: id,
+                language: language,
+                newCardsPerDay: newCardsPerDay,
+                themeMode: themeMode,
+                onboardingDone: onboardingDone,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$AppSettingsTable, AppSetting>(table),
+                  BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$AppSettingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AppSettingsTable,
+      AppSetting,
+      $$AppSettingsTableFilterComposer,
+      $$AppSettingsTableOrderingComposer,
+      $$AppSettingsTableAnnotationComposer,
+      $$AppSettingsTableCreateCompanionBuilder,
+      $$AppSettingsTableUpdateCompanionBuilder,
+      (
+        AppSetting,
+        BaseReferences<_$AppDatabase, $AppSettingsTable, AppSetting>,
+      ),
+      AppSetting,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3901,4 +5316,8 @@ class $AppDatabaseManager {
       $$CardStatesTableTableManager(_db, _db.cardStates);
   $$ReviewLogsTableTableManager get reviewLogs =>
       $$ReviewLogsTableTableManager(_db, _db.reviewLogs);
+  $$NoteSectionsTableTableManager get noteSections =>
+      $$NoteSectionsTableTableManager(_db, _db.noteSections);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db, _db.appSettings);
 }

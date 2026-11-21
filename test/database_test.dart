@@ -65,11 +65,22 @@ void main() {
     expect(await db.countDue(now), 5);
   });
 
-  test('deleting a deck also deletes its questions and cards', () async {
-    final deckId = await db.insertDeck(deck: deck(), items: sample.items, now: now);
-    await (db.delete(db.decks)..where((d) => d.id.equals(deckId))).go();
+  test('deleting a deck also deletes its questions, cards and notes', () async {
+    final deckId =
+        await db.insertDeck(deck: deck(), items: sample.items, notes: sample.notes, now: now);
+    expect(await db.select(db.noteSections).get(), hasLength(2));
+    await db.deleteDeck(deckId);
     expect(await db.select(db.questions).get(), isEmpty);
     expect(await db.select(db.cardStates).get(), isEmpty);
+    expect(await db.select(db.noteSections).get(), isEmpty);
+  });
+
+  test('notes keep their order and points', () async {
+    await db.insertDeck(deck: deck(), items: const [], notes: sample.notes, now: now);
+    final rows = await (db.select(db.noteSections)..orderBy([(n) => OrderingTerm.asc(n.position)])).get();
+    expect(rows.map((r) => r.heading), ['Cost of Quality (CoQ)', 'Failure costs']);
+    expect(rows.first.points, hasLength(2));
+    expect(rows.first.position, 0);
   });
 
   test('a failed save leaves nothing behind (transaction)', () async {

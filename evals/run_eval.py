@@ -52,15 +52,42 @@ RESULTS_DIR = Path(__file__).resolve().parent / "results"
 # We record real usage here to pick the app's maxOutputTokens later.
 MAX_OUTPUT_TOKENS = 32768
 
-# Must match the table in generate_reviewer.md.
-TARGET_MIX = {
-    "identification": 0.25,
-    "multiple_choice": 0.20,
-    "flashcard": 0.15,
-    "true_false": 0.15,
-    "modified_true_false": 0.15,
-    "enumeration": 0.10,
-}
+MIX_FILE = ROOT / "assets" / "prompts" / "question_mix.json"
+QUIZ_TYPES = ["multiple_choice", "identification", "modified_true_false", "enumeration", "true_false"]
+
+
+def base_mix() -> dict[str, float]:
+    """Base type shares, shared with the app (ADR-008)."""
+    raw = json.loads(MIX_FILE.read_text(encoding="utf-8"))
+    return {k: float(v) for k, v in raw.items() if not k.startswith("_")}
+
+
+def target_mix(question_types: list[str]) -> dict[str, float]:
+    """Keep only the chosen types and re-scale to 1 (same as GenerationOptions.targetMix)."""
+    picked = {t: s for t, s in base_mix().items() if t in question_types}
+    total = sum(picked.values())
+    return {t: s / total for t, s in picked.items()} if total else {}
+
+
+def fill_prompt(template: str, language: str, question_types: list[str], notes: bool, page_count: int) -> str:
+    """Exactly what fillPromptTemplate() in lib/services/generator_service.dart does."""
+    mix = target_mix(question_types)
+    if mix:
+        rows = ["| type | share |", "|---|---|"]
+        for t, share in mix.items():
+            extra = " (only if the PDF has real lists)" if t == "enumeration" else ""
+            rows.append(f"| {t} | {int(share * 100 + 0.5)}%{extra} |")  # Dart's round(): half away from 0
+        table = "\n".join(rows)
+    else:
+        table = "(No questions requested.)"
+    notes_text = ("requested. Write key points by topic (section 5)." if notes
+                  else "not requested. Set `notes` to an empty list.")
+    n_questions = target_questions(page_count) if question_types else 0
+    return (template
+            .replace("{{explanation_language}}", language)
+            .replace("{{target_questions}}", str(n_questions))
+            .replace("{{question_mix}}", table)
+            .replace("{{notes_instruction}}", notes_text))
 
 # USD per 1M tokens (input, output incl. thinking). Source: Gemini API pricing
 # page, checked 2026-11-20 (Agent Platform page didn't load; confirm in console).
@@ -216,14 +243,53 @@ def near_duplicates(questions: list[dict]) -> int:
 
 
 # ---------------------------------------------------------------- scoring
-def score_deck(deck: dict, pages: list[str], language: str, schema: dict) -> dict:
+def score_notes(notes: list, pages: list[str], language: str) -> tuple[float, dict]:
+    """Notes: valid sections, headings found in the PDF, points in the right language."""
+    if not notes:
+        return 0.0, {"note_sections": 0}
+    valid = [s for s in notes
+             if str(s.get("heading", "")).strip() and s.get("points")
+             and isinstance(s.get("source_page"), int) and 1 <= s["source_page"] <= len(pages)]
+    headings_found = sum(find_in_pdf(s["heading"], pages, threshold=80) is not None for s in valid)
+    points = [p for s in valid for p in s["points"]]
+    lang_ok = sum(explanation_language_ok(p, language) for p in points)
+    parts = [
+        len(valid) / len(notes),
+        headings_found / len(valid) if valid else 0.0,
+        lang_ok / len(points) if points else 0.0,
+    ]
+    return sum(parts) / len(parts), {
+        "note_sections": len(notes),
+        "note_headings_found": f"{headings_found}/{len(valid)}",
+        "note_points": len(points),
+    }
+
+
+def score_deck(deck: dict, pages: list[str], language: str, schema: dict,
+               question_types: list[str], notes_wanted: bool) -> dict:
     schema_errors = [e.message for e in Draft202012Validator(schema).iter_errors(deck)]
     questions = deck.get("questions") or []
+    notes = deck.get("notes") or []
     n = len(questions)
+
+    extra = {}
+    if notes_wanted:
+        notes_part, extra = score_notes(notes, pages, language)
+    else:
+        notes_part = 1.0 if not notes else 0.0  # asked for none, got none
+
+    if not question_types:  # notes-only deck
+        parts = {"validity": 1.0 if not questions else 0.0, "notes": notes_part}
+        return {"score": round(100 * sum(parts.values()) / len(parts), 1),
+                **{k: round(100 * v, 1) for k, v in parts.items()},
+                "questions": n, "schema_errors": schema_errors[:5], **extra}
     if not n:
-        return {"score": 0.0, "questions": 0, "schema_errors": schema_errors[:5]}
+        return {"score": 0.0, "questions": 0, "schema_errors": schema_errors[:5], **extra}
 
     problems = {i: item_problems(q, len(pages)) for i, q in enumerate(questions)}
+    for i, q in enumerate(questions):
+        if q.get("type") not in question_types:
+            problems[i].append("type not requested")
     valid = [q for i, q in enumerate(questions) if not problems[i]]
 
     grounded = checkable = near_page = 0
@@ -239,7 +305,8 @@ def score_deck(deck: dict, pages: list[str], language: str, schema: dict) -> dic
             ungrounded_examples.append(f"[{q['type']}] {q['prompt'][:70]} -> {q['answer'][:50]}")
 
     counts = Counter(q.get("type") for q in questions)
-    mix = 1 - 0.5 * sum(abs(counts.get(t, 0) / n - share) for t, share in TARGET_MIX.items())
+    wanted = target_mix(question_types)
+    mix = 1 - 0.5 * sum(abs(counts.get(t, 0) / n - wanted.get(t, 0.0)) for t in set(wanted) | set(counts))
     dupes = near_duplicates(questions)
     lang_ok = sum(explanation_language_ok(q.get("explanation", ""), language) for q in valid)
 
@@ -249,10 +316,12 @@ def score_deck(deck: dict, pages: list[str], language: str, schema: dict) -> dic
         "mix": max(mix, 0.0),
         "uniqueness": 1 - dupes / n,
         "language": lang_ok / len(valid) if valid else 0.0,
+        "notes": notes_part,
     }
     return {
         "score": round(100 * sum(parts.values()) / len(parts), 1),
         **{k: round(100 * v, 1) for k, v in parts.items()},
+        **extra,
         "questions": n,
         "valid": len(valid),
         "type_counts": dict(counts),
@@ -316,10 +385,17 @@ def generate(client, model: str, pdf_path: Path, prompt: str, schema: dict,
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--model", default="gemini-3.8-flash")
-    parser.add_argument("--language", default="taglish", choices=["english", "filipino", "taglish"])
+    parser.add_argument("--language", default="english", choices=["english", "filipino", "taglish"])
     parser.add_argument("--only", help="only PDFs whose name contains this text")
     parser.add_argument("--rescore", action="store_true", help="score cached responses only, no API calls")
+    parser.add_argument("--quiz-types", default=",".join(QUIZ_TYPES),
+                        help="comma list of quiz types, or 'none' (default: all 5)")
+    parser.add_argument("--no-flashcards", action="store_true")
+    parser.add_argument("--no-notes", action="store_true")
     args = parser.parse_args()
+    quiz = [] if args.quiz_types == "none" else [t.strip() for t in args.quiz_types.split(",") if t.strip()]
+    question_types = quiz + ([] if args.no_flashcards else ["flashcard"])
+    notes_wanted = not args.no_notes
 
     prompt_template = PROMPT_FILE.read_text(encoding="utf-8")
     schema_text = SCHEMA_FILE.read_text(encoding="utf-8")
@@ -331,10 +407,8 @@ def main():
     rows = []
     for pdf in pdfs:
         pages = read_pdf_pages(pdf)
-        n_target = target_questions(len(pages))
-        prompt = (prompt_template
-                  .replace("{{explanation_language}}", args.language)
-                  .replace("{{target_questions}}", str(n_target)))
+        n_target = target_questions(len(pages)) if question_types else 0
+        prompt = fill_prompt(prompt_template, args.language, question_types, notes_wanted, len(pages))
         key = hashlib.sha256(
             prompt.encode() + schema_text.encode() + pdf.read_bytes() + args.model.encode()
         ).hexdigest()
@@ -347,7 +421,7 @@ def main():
         else:
             try:
                 deck = json.loads(raw["text"])
-                row.update(score_deck(deck, pages, args.language, schema))
+                row.update(score_deck(deck, pages, args.language, schema, question_types, notes_wanted))
             except (json.JSONDecodeError, TypeError) as e:
                 row.update(score=0.0, error=f"invalid JSON ({raw['finish_reason']}): {e}")
             cost = (raw["input_tokens"] * price_in + (raw["output_tokens"] + raw["thinking_tokens"]) * price_out) / 1e6
@@ -357,14 +431,17 @@ def main():
 
     # ---- report
     print()
-    print(f"Model {args.model} · explanations in {args.language}")
-    print(f"{'PDF':38} {'score':>5} {'valid':>5} {'grnd':>5} {'mix':>5} {'uniq':>5} {'lang':>5} {'n/tgt':>6} {'out+think':>9} {'$':>7}")
+    print(f"Model {args.model} · explanations in {args.language} · types {question_types or 'none'}"
+          f" · notes {'on' if notes_wanted else 'off'}")
+    cols = ["validity", "grounding", "mix", "uniqueness", "language", "notes"]
+    print(f"{'PDF':38} {'score':>5} {'valid':>5} {'grnd':>5} {'mix':>5} {'uniq':>5} {'lang':>5} {'notes':>5}"
+          f" {'n/tgt':>6} {'out+think':>9} {'$':>7}")
     for r in rows:
         if "error" in r:
             print(f"{r['pdf'][:38]:38} ERROR {r['error'][:90]}")
             continue
-        print(f"{r['pdf'][:38]:38} {r['score']:5.1f} {r['validity']:5.1f} {r['grounding']:5.1f} {r['mix']:5.1f} "
-              f"{r['uniqueness']:5.1f} {r['language']:5.1f} {r['questions']:>3}/{r['target']:<2} "
+        parts = " ".join(f"{r[c]:5.1f}" if c in r else f"{'-':>5}" for c in cols)
+        print(f"{r['pdf'][:38]:38} {r['score']:5.1f} {parts} {r['questions']:>3}/{r['target']:<2} "
               f"{r['output_tokens'] + r['thinking_tokens']:>9} {r['cost_usd']:7.4f}")
     scores = [r["score"] for r in rows]
     costs = [r["cost_usd"] for r in rows if "cost_usd" in r]

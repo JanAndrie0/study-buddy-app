@@ -169,7 +169,57 @@ void main() {
       'questions': [question('flashcard', {'difficulty': 'insane'})],
     });
     final result = ReviewerParser.parse(text, pageCount: 5);
-    expect(result.explanationLanguage, 'taglish');
+    expect(result.explanationLanguage, 'english');
     expect(result.items.single.difficulty, 'medium');
+  });
+
+  group('notes and chosen types (ADR-008)', () {
+    String withNotes(List<Map<String, dynamic>> notes, [List<Map<String, dynamic>> questions = const []]) =>
+        jsonEncode({
+          'deck_title': 'x',
+          'subject': 'y',
+          'explanation_language': 'taglish',
+          'notes': notes,
+          'questions': questions,
+        });
+    Map<String, dynamic> note([Map<String, dynamic> o = const {}]) =>
+        {'heading': 'Cost of Quality', 'source_page': 2, 'points': ['A', 'B'], ...o};
+
+    test('parses the sample deck notes', () {
+      final text = File('test/fixtures/sample_reviewer.json').readAsStringSync();
+      final result = ReviewerParser.parse(text, pageCount: 10);
+      expect(result.notes, hasLength(2));
+      expect(result.notes.first.heading, 'Cost of Quality (CoQ)');
+      expect(result.notes.first.points, hasLength(2));
+    });
+
+    test('a notes-only deck is usable', () {
+      final result = ReviewerParser.parse(withNotes([note()]), pageCount: 5);
+      expect(result.items, isEmpty);
+      expect(result.isUsable, isTrue);
+    });
+
+    test('drops note sections with no heading, no points or a bad page', () {
+      final result = ReviewerParser.parse(
+        withNotes([note({'heading': ''}), note({'points': []}), note({'source_page': 99}), note()]),
+        pageCount: 5,
+      );
+      expect(result.notes, hasLength(1));
+      expect(result.dropped, hasLength(3));
+    });
+
+    test('drops question types the student did not ask for', () {
+      final result = ReviewerParser.parse(
+        withNotes([], [question('flashcard'), question('identification', {'prompt': 'Checking costs.'})]),
+        pageCount: 5,
+        allowedTypes: {QuestionType.flashcard},
+      );
+      expect(result.items.single.type, QuestionType.flashcard);
+      expect(result.dropped.single, contains('type not requested'));
+    });
+
+    test('empty notes and empty questions is not usable', () {
+      expect(ReviewerParser.parse(withNotes([]), pageCount: 5).isUsable, isFalse);
+    });
   });
 }
