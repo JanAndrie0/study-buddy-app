@@ -104,7 +104,11 @@ class _TestScreenState extends ConsumerState<TestScreen> {
       ),
       body: switch (state.phase) {
         StudyPhase.loading => const Center(child: CircularProgressIndicator()),
-        StudyPhase.done => SessionSummary(state: state, onRetake: () => setState(() => _started = false)),
+        StudyPhase.done => SessionSummary(
+            state: state,
+            onRetake: () => setState(() => _started = false),
+            emptyMessage: 'No questions of those types in this reviewer.\nTap Retake to pick other types.',
+          ),
         _ => ListView(
             padding: const EdgeInsets.all(16),
             children: [

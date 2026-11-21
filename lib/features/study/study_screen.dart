@@ -219,13 +219,16 @@ class FeedbackBanner extends StatelessWidget {
 
 /// Score ring and the questions to look at again.
 class SessionSummary extends StatelessWidget {
-  const SessionSummary({super.key, required this.state, this.onRetake, this.onStudyAnyway});
+  const SessionSummary({super.key, required this.state, this.onRetake, this.onStudyAnyway, this.emptyMessage});
 
   final StudyState state;
   final VoidCallback? onRetake;
 
   /// Shown when today's new-card limit held cards back (bug B3).
   final VoidCallback? onStudyAnyway;
+
+  /// What to say when there was nothing to answer (defaults to "nothing due").
+  final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -244,7 +247,7 @@ class SessionSummary extends StatelessWidget {
               Text(
                 limited
                     ? "You've reached today's new-card limit.\n${state.heldBackNew} new cards are waiting."
-                    : 'Walang due ngayon.\nCome back later, or try Flashcards or Test.',
+                    : emptyMessage ?? 'Walang due ngayon.\nCome back later, or try Flashcards or Test.',
                 textAlign: TextAlign.center,
               ),
               if (limited && onStudyAnyway != null) ...[

@@ -54,6 +54,8 @@ app.*.map.json
 *.keystore
 *.jks
 key.properties
+# Build-time secrets (App Check debug token for my release APK)
+secrets.json
 service-account*.json
 
 # My lecture PDFs stay on my machine (copyrighted course material),

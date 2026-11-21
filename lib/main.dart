@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'features/home/home_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
 import 'firebase_options.dart';
 import 'providers.dart';
 import 'theme.dart';
@@ -16,13 +17,21 @@ Future<void> main() async {
   // Connects the app to the study-buddy-ffd63 Firebase project. Works offline.
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // App Check proves requests come from THIS app. Debug builds on my own
-  // phone use the debug provider (token registered in the Firebase console);
-  // release builds use Play Integrity.
+  // App Check proves requests come from THIS app (CLAUDE.md: debug provider
+  // only on my own device).
+  // - Debug builds: debug provider, token printed to logcat.
+  // - My sideloaded release APK: debug provider with a FIXED token passed at
+  //   build time (--dart-define-from-file=secrets.json, gitignored), because a
+  //   sideloaded app fails Play Integrity. Register that token once in the
+  //   Firebase console.
+  // - Any other release build: Play Integrity.
+  const releaseDebugToken = String.fromEnvironment('APP_CHECK_DEBUG_TOKEN');
   await FirebaseAppCheck.instance.activate(
-    providerAndroid: kDebugMode
-        ? const AndroidDebugProvider()
-        : const AndroidPlayIntegrityProvider(),
+    providerAndroid: releaseDebugToken.isNotEmpty
+        ? const AndroidDebugProvider(debugToken: releaseDebugToken)
+        : kDebugMode
+            ? const AndroidDebugProvider()
+            : const AndroidPlayIntegrityProvider(),
   );
 
   runApp(const ProviderScope(child: StudyBuddyApp()));
@@ -43,7 +52,12 @@ class StudyBuddyApp extends ConsumerWidget {
       themeMode: themeMode,
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
-      home: const HomeScreen(),
+      // First launch: the 3 onboarding screens, then Home from then on.
+      home: switch (ref.watch(settingsProvider).value?.onboardingDone) {
+        null => const Scaffold(body: Center(child: CircularProgressIndicator())),
+        false => const OnboardingScreen(),
+        true => const HomeScreen(),
+      },
     );
   }
 }
