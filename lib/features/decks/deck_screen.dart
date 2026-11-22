@@ -5,7 +5,9 @@ import '../../data/database.dart';
 import '../../models/reviewer_item.dart';
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/rich_terms.dart';
+import '../../widgets/ui.dart';
 import '../study/flashcards_screen.dart';
 import '../study/match_screen.dart';
 import '../study/study_controller.dart';
@@ -34,14 +36,16 @@ const questionTypeLabels = {
   'modified_true_false': 'Modified true or false',
 };
 
-/// A saved reviewer (design feedback #2 + #4): header, flashcard preview,
-/// study-mode tiles, then tabs Flashcards · Notes · Questions. Offline.
+/// A saved reviewer (design feedback #2 + #4, Figma "Deck page"): counts,
+/// flashcard preview, study-mode tiles, then tabs Flashcards · Notes ·
+/// Questions. Offline.
 class DeckScreen extends ConsumerWidget {
   const DeckScreen({super.key, required this.deckId});
 
   final int deckId;
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
+    final t = context.tokens;
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -49,7 +53,11 @@ class DeckScreen extends ConsumerWidget {
         content: const Text('Its flashcards, notes, questions and review progress will be deleted too.'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: t.error, foregroundColor: t.onStatus),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -84,16 +92,16 @@ class DeckScreen extends ConsumerWidget {
 
     final modes = <(IconData, String, String, VoidCallback)>[
       if (flashcards.isNotEmpty)
-        (Icons.style, 'Flashcards', '${flashcards.length} cards',
+        (Icons.style_outlined, 'Flashcards', '${flashcards.length} cards',
             () => _open(context, FlashcardsScreen(deckId: deckId))),
       if (quiz.isNotEmpty)
-        (Icons.quiz, 'Quiz', 'Spaced review',
+        (Icons.quiz_outlined, 'Quiz', 'Spaced review',
             () => _open(context, StudyScreen(deckId: deckId, mode: StudyMode.quiz))),
       if (quiz.isNotEmpty)
-        (Icons.assignment, 'Test', 'Practice exam',
+        (Icons.assignment_turned_in_outlined, 'Test', 'Practice exam',
             () => _open(context, TestScreen(deckId: deckId, availableTypes: quizTypes))),
       if (flashcards.length >= 2)
-        (Icons.extension, 'Match', 'Beat the clock', () => _open(context, MatchScreen(deckId: deckId))),
+        (Icons.extension_outlined, 'Match', 'Beat the clock', () => _open(context, MatchScreen(deckId: deckId))),
     ];
 
     return DefaultTabController(
@@ -120,7 +128,7 @@ class DeckScreen extends ConsumerWidget {
               ],
             ),
             SliverToBoxAdapter(
-              child: _DeckHeader(deck: deck, flashcards: flashcards, quizCount: quiz.length, hasNotes: notes.isNotEmpty),
+              child: _DeckHeader(deck: deck, flashcards: flashcards, quizCount: quiz.length, noteCount: notes.length),
             ),
             if (flashcards.isNotEmpty) SliverToBoxAdapter(child: FlashcardCarousel(cards: flashcards)),
             if (modes.isNotEmpty) SliverToBoxAdapter(child: _ModeTiles(modes: modes)),
@@ -132,7 +140,7 @@ class DeckScreen extends ConsumerWidget {
               ),
           ],
           body: tabs.isEmpty
-              ? const Center(child: Text('Walang laman ang reviewer na ito.'))
+              ? const EmptyState(icon: Icons.inbox_outlined, title: 'Walang laman ang reviewer na ito.')
               : TabBarView(children: [for (final t in tabs) t.$2]),
         ),
       ),
@@ -141,28 +149,30 @@ class DeckScreen extends ConsumerWidget {
 }
 
 class _DeckHeader extends StatelessWidget {
-  const _DeckHeader({required this.deck, required this.flashcards, required this.quizCount, required this.hasNotes});
+  const _DeckHeader({required this.deck, required this.flashcards, required this.quizCount, required this.noteCount});
 
   final Deck deck;
   final List<Question> flashcards;
   final int quizCount;
-  final bool hasNotes;
+  final int noteCount;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final counts = [
-      if (flashcards.isNotEmpty) '${flashcards.length} flashcards',
-      if (quizCount > 0) '$quizCount questions',
-      if (hasNotes) 'notes',
-    ].join(' · ');
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (deck.subject.isNotEmpty) Text(deck.subject, style: theme.textTheme.labelLarge),
-          Text(counts, style: theme.textTheme.bodyMedium),
+          if (deck.subject.isNotEmpty) ...[SectionLabel(deck.subject), const SizedBox(height: Space.sm)],
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              if (flashcards.isNotEmpty) TagPill('${flashcards.length} flashcards'),
+              if (noteCount > 0) TagPill(noteCount == 1 ? '1 note topic' : '$noteCount note topics'),
+              if (quizCount > 0) TagPill('$quizCount questions'),
+            ],
+          ),
         ],
       ),
     );
@@ -183,7 +193,7 @@ class FlashcardCarousel extends StatelessWidget {
         controller: PageController(viewportFraction: 0.88),
         itemCount: cards.length,
         itemBuilder: (context, i) => Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: Space.sm),
           child: _PreviewCard(card: cards[i]),
         ),
       ),
@@ -205,24 +215,33 @@ class _PreviewCardState extends State<_PreviewCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.tokens;
     return Card(
       margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.xl), side: BorderSide(color: t.border)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(Radii.xl),
         onTap: () => setState(() => _back = !_back),
         child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Center(
-            child: AnimatedSwitcher(
-              duration: motion(context, 200),
-              child: SingleChildScrollView(
-                key: ValueKey(_back),
-                child: RichTerms(
-                  _back ? widget.card.answer : widget.card.prompt,
-                  style: _back ? theme.textTheme.bodyLarge : theme.textTheme.titleLarge,
-                  textAlign: TextAlign.center,
+          padding: const EdgeInsets.all(Space.xl),
+          child: AnimatedSwitcher(
+            duration: motion(context, Motion.medium),
+            child: Column(
+              key: ValueKey(_back),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SectionLabel(_back ? 'Definition' : 'Term', color: t.textAccent),
+                const SizedBox(height: Space.sm),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: RichTerms(
+                      _back ? widget.card.answer : widget.card.prompt,
+                      style: _back ? theme.textTheme.bodyLarge : theme.textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
@@ -238,44 +257,18 @@ class _ModeTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(Space.lg, Space.sm, Space.lg, Space.sm),
       child: GridView.count(
         crossAxisCount: 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childAspectRatio: 2.4,
+        mainAxisSpacing: Space.sm,
+        crossAxisSpacing: Space.sm,
+        childAspectRatio: 1.6,
         children: [
-          for (final (icon, title, subtitle, onTap) in modes)
-            Card(
-              margin: EdgeInsets.zero,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: onTap,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  child: Row(
-                    children: [
-                      Icon(icon, color: theme.colorScheme.primary),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(title, style: theme.textTheme.titleMedium),
-                            Text(subtitle, style: theme.textTheme.bodySmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          for (final (i, (icon, title, subtitle, onTap)) in modes.indexed)
+            FadeSlideIn(index: i, child: ModeTile(icon: icon, label: title, caption: subtitle, onTap: onTap)),
         ],
       ),
     );
@@ -295,19 +288,24 @@ class _TabActionButton extends StatelessWidget {
     final controller = DefaultTabController.of(context);
     return AnimatedBuilder(
       animation: controller,
-      builder: (context, _) => switch (tabNames[controller.index]) {
-        'Flashcards' => FloatingActionButton.extended(
-            onPressed: onStudyFlashcards,
-            icon: const Icon(Icons.style),
-            label: const Text('Study flashcards'),
-          ),
-        'Questions' => FloatingActionButton.extended(
-            onPressed: onTakeQuiz,
-            icon: const Icon(Icons.quiz),
-            label: const Text('Take quiz'),
-          ),
-        _ => const SizedBox.shrink(),
-      },
+      builder: (context, _) => AnimatedSwitcher(
+        duration: motion(context, Motion.short),
+        child: switch (tabNames[controller.index]) {
+          'Flashcards' => FloatingActionButton.extended(
+              key: const ValueKey('flashcards'),
+              onPressed: onStudyFlashcards,
+              icon: const Icon(Icons.style_outlined),
+              label: const Text('Study flashcards'),
+            ),
+          'Questions' => FloatingActionButton.extended(
+              key: const ValueKey('quiz'),
+              onPressed: onTakeQuiz,
+              icon: const Icon(Icons.quiz_outlined),
+              label: const Text('Take quiz'),
+            ),
+          _ => const SizedBox.shrink(),
+        },
+      ),
     );
   }
 }
@@ -331,7 +329,7 @@ class _TabBarHeader extends SliverPersistentHeaderDelegate {
 }
 
 /// Room at the bottom so the floating button never covers the last item.
-const _listPadding = EdgeInsets.fromLTRB(16, 12, 16, 96);
+const _listPadding = EdgeInsets.fromLTRB(Space.lg, Space.md, Space.lg, 96);
 
 /// Every flashcard: term and meaning.
 class FlashcardList extends StatelessWidget {
@@ -347,13 +345,14 @@ class FlashcardList extends StatelessWidget {
       itemCount: cards.length,
       itemBuilder: (context, i) => Card(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(Space.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               RichTerms(cards[i].prompt, style: theme.textTheme.titleMedium),
-              const Divider(height: 20),
-              RichTerms(cards[i].answer),
+              const SizedBox(height: Space.xs),
+              RichTerms(cards[i].answer,
+                  style: theme.textTheme.bodyMedium!.copyWith(color: context.tokens.textSecondary)),
             ],
           ),
         ),
@@ -371,6 +370,7 @@ class NotesList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.tokens;
     return ListView.builder(
       padding: _listPadding,
       itemCount: notes.length,
@@ -378,26 +378,26 @@ class NotesList extends StatelessWidget {
         final section = notes[i];
         return Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(Space.lg),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: Text(section.heading, style: theme.textTheme.titleMedium)),
-                    const SizedBox(width: 8),
-                    Text('page ${section.sourcePage}', style: theme.textTheme.bodySmall),
+                    Expanded(child: Text(section.heading, style: theme.textTheme.titleLarge)),
+                    const SizedBox(width: Space.sm),
+                    TagPill('page ${section.sourcePage}'),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: Space.sm),
                 for (final point in section.points)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('•  '),
+                        Text('•  ', style: TextStyle(color: t.textAccent, fontWeight: FontWeight.w700)),
                         Expanded(child: RichTerms(point)),
                       ],
                     ),
@@ -419,6 +419,8 @@ class QuestionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final t = context.tokens;
     return ListView.builder(
       padding: _listPadding,
       itemCount: questions.length,
@@ -426,17 +428,30 @@ class QuestionList extends StatelessWidget {
         final q = questions[i];
         return Card(
           child: ExpansionTile(
-            shape: const Border(),
-            title: Text(q.prompt),
-            subtitle: Text('${questionTypeLabels[q.type] ?? q.type} · page ${q.sourcePage}'),
-            childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            title: Text(q.prompt, style: theme.textTheme.bodyLarge),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: Space.xs),
+              child: Text('${questionTypeLabels[q.type] ?? q.type} · page ${q.sourcePage}',
+                  style: theme.textTheme.bodySmall),
+            ),
+            childrenPadding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, Space.lg),
             expandedCrossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (q.choices.isNotEmpty) Text('Choices: ${q.choices.join(' · ')}'),
-              if (q.underlinedWord != null) Text('Underlined: ${q.underlinedWord}'),
-              Text('Answer: ${q.answer}', style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (q.choices.isNotEmpty) Text('Choices: ${q.choices.join(' · ')}', style: theme.textTheme.bodySmall),
+              if (q.underlinedWord != null) Text('Underlined: ${q.underlinedWord}', style: theme.textTheme.bodySmall),
+              const SizedBox(height: Space.xs),
+              Row(
+                children: [
+                  Icon(Icons.check, size: 18, color: t.success),
+                  const SizedBox(width: Space.xs),
+                  Expanded(
+                    child: Text('Answer: ${q.answer}',
+                        style: theme.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w700, color: t.success)),
+                  ),
+                ],
+              ),
               if (q.type == 'modified_true_false' && q.answer == 'False') Text('Correction: ${q.correction}'),
-              const SizedBox(height: 8),
+              const SizedBox(height: Space.sm),
               RichTerms(q.explanation),
             ],
           ),

@@ -5,7 +5,9 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../models/reviewer_item.dart';
 import '../../services/grader.dart';
+import '../../theme.dart';
 import '../../widgets/rich_terms.dart';
+import '../../widgets/ui.dart';
 
 /// Called when the student checks an answer.
 typedef OnGraded = void Function(GradeResult grade, String? answeredText);
@@ -38,7 +40,7 @@ class QuestionView extends StatelessWidget {
       };
 }
 
-TextStyle? _promptStyle(BuildContext context) => Theme.of(context).textTheme.titleLarge;
+TextStyle? _promptStyle(BuildContext context) => questionStyle(context);
 
 /// Flashcard: tap to flip, then rate yourself (Again / Hard / Good / Easy).
 class FlashcardView extends StatefulWidget {
@@ -118,50 +120,32 @@ class _MultipleChoiceViewState extends State<MultipleChoiceView> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(widget.item.prompt, style: _promptStyle(context)),
         const SizedBox(height: 16),
-        for (final choice in _choices)
+        // Bug B4 still holds: options use the main text colour, also after
+        // answering. Not colour alone: ✓ marks the right option, ✗ your pick.
+        for (final (i, choice) in _choices.indexed)
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: OutlinedButton(
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size.fromHeight(56),
-                alignment: Alignment.centerLeft,
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                // Bug B4: readable choices. Main text colour (not the light
-                // accent), also after answering, when the button is disabled.
-                foregroundColor: scheme.onSurface,
-                disabledForegroundColor: scheme.onSurface,
-                textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
-                backgroundColor: !widget.locked
-                    ? null
-                    : choice == widget.item.answer
-                        ? scheme.primaryContainer
-                        : choice == _picked
-                            ? scheme.errorContainer
-                            : null,
-              ),
-              onPressed: widget.locked
+            child: AnswerOption(
+              letter: String.fromCharCode(65 + i), // A, B, C, D
+              text: choice,
+              state: !widget.locked
+                  ? (choice == _picked ? AnswerState.selected : AnswerState.idle)
+                  : choice == widget.item.answer
+                      ? AnswerState.correct
+                      : choice == _picked
+                          ? AnswerState.wrong
+                          : AnswerState.idle,
+              onTap: widget.locked
                   ? null
                   : () {
                       setState(() => _picked = choice);
                       widget.onGraded(gradeMultipleChoice(choice, widget.item), choice);
                     },
-              // Not colour alone: after answering, ✓ marks the right option and
-              // ✗ your wrong pick.
-              child: Row(
-                children: [
-                  Expanded(child: Text(choice)),
-                  if (widget.locked && choice == widget.item.answer)
-                    Icon(Icons.check_circle, color: scheme.primary)
-                  else if (widget.locked && choice == _picked)
-                    Icon(Icons.cancel, color: scheme.error),
-                ],
-              ),
             ),
           ),
       ],

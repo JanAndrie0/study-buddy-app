@@ -1,98 +1,32 @@
-# Study Buddy — Phase 4 mockups
+# Study Buddy — design ("Calm Notebook")
 
-Text wireframes drawn before building the study screens (process.md, Phase 4).
-Material 3, indigo seed colour, big tap targets (≥ 48 dp), dark mode from day one.
-Everything on these screens works **offline**.
+The design lives in Figma: **[Study Buddy — Redesign](https://www.figma.com/design/uXkNEa4LcKmJWK9A748c51)**.
+It replaces the Phase 4 text wireframes that used to be in this file (see Git history).
 
-## Home
-```
-┌─────────────────────────────────┐
-│ Study Buddy                  ⚙  │  ← Settings
-├─────────────────────────────────┤
-│ ┌─────────────────────────────┐ │
-│ │ 📅 12 due today             │ │  ← tap: study all due cards
-│ │        [ Mag-review na ]    │ │
-│ └─────────────────────────────┘ │
-│ ┌─────────────────────────────┐ │
-│ │ 🗂 Software Quality Econ.  › │ │
-│ │ CIT4303 · 14 questions ·    │ │
-│ │ notes                       │ │
-│ └─────────────────────────────┘ │
-│                  [ + Add lecture ] │
-└─────────────────────────────────┘
-```
+## Figma pages
 
-## Deck
-```
-┌─────────────────────────────────┐
-│ ← Reviewer                   🗑 │
-│ [ Notes ] [ Questions ]         │
-├─────────────────────────────────┤
-│ Cost of Quality        page 2   │
-│ • Kabuuang gastos para …        │
-│ • Apat na categories: …         │
-│                                 │
-│        [ ▶ Study ]              │  ← floating button
-└─────────────────────────────────┘
-```
+| Page | What's there |
+|---|---|
+| 0 · Directions | The two looks I chose between: A "Kalye Warm" and **B "Calm Notebook" (picked)** |
+| 1 · Foundations | Colour tokens in Light and Dark, type scale, spacing, radius, **motion spec** |
+| 2 · Components | 22 icons and 16 components (Button, Chip, Tag, Progress bar, Answer option, Feedback banner, Flashcard, Deck card, Mode tile, Due card, Switch, Settings row, Text field, App bar, Tab bar, Empty state) |
+| 3 · Screens | 28 screens, 360 × 800: onboarding, Home, Add lecture, Deck tabs, Flashcards, Quiz, Test, Match, Settings, plus dark mode |
+| 4 · Logo | **"Card buddies"** (picked), app icon sizes, adaptive-icon foreground, lockup |
 
-## Study (one question per screen)
-Top: progress bar + "3 / 12". Bottom: the answer area for the type.
-```
-Multiple choice           Identification            Modified true or false
-┌──────────────────┐      ┌──────────────────┐      ┌──────────────────┐
-│ Which cost cat…? │      │ Costs from defe… │      │ Training is an   │
-│ [ Prevention   ] │      │ ┌──────────────┐ │      │ example of       │
-│ [ Appraisal    ] │      │ │ type answer  │ │      │ _appraisal_ cost.│
-│ [ Internal f.  ] │      │ └──────────────┘ │      │ [ True ][ False ]│
-│ [ External f.  ] │      │      [ Check ]   │      │ False → ┌──────┐ │
-└──────────────────┘      └──────────────────┘      │  correct│word  │ │
-                                                    │         └──────┘ │
-Enumeration (one box per item)   True or false      │      [ Check ]   │
-┌──────────────────┐      ┌──────────────────┐      └──────────────────┘
-│ Enumerate the 4… │      │ Fixing a defect… │
-│ 1 [__________]   │      │ [ True ][ False ]│      Flashcard
-│ 2 [__________]   │      └──────────────────┘      ┌──────────────────┐
-│ 3 [__________]   │                                │  Cost of Quality │
-│ 4 [__________]   │                                │  (tap to flip)   │
-│      [ Check ]   │                                │ [Again][Hard]    │
-└──────────────────┘                                │ [Good] [Easy]    │
-                                                    └──────────────────┘
-```
+## Design → code
 
-## Feedback + explanation sheet (after Check)
-```
-┌─────────────────────────────────┐
-│ ✅ Tama!   (or ❌ Mali — sagot: │
-│             Appraisal cost)     │
-│ ─────────────────────────────── │
-│ Kasi ang testing ay appraisal … │  ← explanation in chosen language
-│ 📄 Source: page 3               │
-│                    [ Next → ]   │
-└─────────────────────────────────┘
-```
-Enumeration shows "3/4 tama" and the missed items. Modified T/F shows the
-underlined word and its correction.
+| Figma | Flutter |
+|---|---|
+| Colour variables (Light/Dark) | `AppTokens` in `lib/theme.dart`, read with `context.tokens` |
+| Spacing / Radius / Motion variables | `Space`, `Radii`, `Motion` in `lib/theme.dart` |
+| Text styles (Fraunces + Inter) | `TextTheme` in `buildAppTheme`; fonts bundled in `assets/fonts/` (OFL) so they work offline |
+| Components | `lib/widgets/ui.dart` (IconDisc, TagPill, SectionLabel, EmptyState, ModeTile, AnimatedBar, AnswerOption) and Material components themed in `buildAppTheme` |
+| Motion spec | `lib/widgets/motion.dart` (FadeSlideIn, PopIn, Shake) + `FadeSlidePageTransitionsBuilder` |
+| Logo | `lib/widgets/logo.dart` (drawn in code); Android icon in `res/drawable/ic_launcher_foreground.xml`; legacy PNGs from `tool/render_launcher_icons.dart` |
 
-## Session summary
-```
-┌─────────────────────────────────┐
-│ Tapos na! 🎉                     │
-│        9 / 12 tama (75%)        │
-│ Balikan mo ang mga ito:         │
-│ • Internal failure cost …       │
-│ • Enumerate the 4 …             │
-│                    [ Done ]     │
-└─────────────────────────────────┘
-```
+## Rules kept from earlier phases
 
-## Settings
-```
-┌─────────────────────────────────┐
-│ ← Settings                      │
-│ Explanation language            │
-│ [ Taglish | Filipino | English ]│
-│ New cards per day        [ 20 ] │
-│ Theme   ( System | Light | Dark)│
-└─────────────────────────────────┘
-```
+- Tap targets ≥ 48 dp; body text ≥ 16 sp; text contrast ≥ 4.5 : 1 in both modes.
+- Right/wrong never relies on colour alone (✓ / ✗ icons, screen-reader labels).
+- Key terms in notes and explanations are **bold**.
+- Every animation goes through `motion()`, so Android's "Remove animations" turns it off.
