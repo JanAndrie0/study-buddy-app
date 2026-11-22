@@ -154,10 +154,10 @@ void main() {
     expect(result.dropped.single, contains('duplicate'));
   });
 
-  test('caps the deck at 60 items', () {
-    final many = List.generate(65, (i) => question('flashcard', {'prompt': 'Term number $i'}));
+  test('caps the deck at 100 items (40 quiz + 60 flashcards, ADR-010)', () {
+    final many = List.generate(105, (i) => question('flashcard', {'prompt': 'Term number $i'}));
     final result = ReviewerParser.parse(deckJson(many), pageCount: 5);
-    expect(result.items, hasLength(60));
+    expect(result.items, hasLength(100));
     expect(result.dropped, hasLength(5));
   });
 
@@ -220,6 +220,68 @@ void main() {
 
     test('empty notes and empty questions is not usable', () {
       expect(ReviewerParser.parse(withNotes([]), pageCount: 5).isUsable, isFalse);
+    });
+  });
+
+  // ADR-010: the user's Philippine History lecture had ~20 bolded terms in the
+  // notes but only 4 flashcards. Every bolded term must end up with a card.
+  group('flashcards for every bolded note term (ADR-010)', () {
+    final historyNotes = [
+      {
+        'heading': 'Taxes and Labor Systems',
+        'source_page': 1,
+        'points': [
+          'The **tributo** was a general tax paid by Filipinos to Spain amounting to eight Reales.',
+          '**Servicio Personal** refers to the form of forced labor during the Spanish period.',
+          '**Caja de Comunidad** was a **1 Real** tax collected for town expenses.',
+          'Mestizos controlled crops like **sugar, abacca, and indigo** for export.',
+          'The **Principalia** consisted of local elites such as the **Gobernadorcillo**.',
+        ],
+      },
+    ];
+    String deck(List<Map<String, dynamic>> questions) => jsonEncode({
+          'deck_title': 'Spanish Colonial Economy',
+          'subject': 'Philippine History',
+          'explanation_language': 'english',
+          'notes': historyNotes,
+          'key_terms': ['Tributo'],
+          'questions': questions,
+        });
+    final tributoCard = question('flashcard', {
+      'prompt': 'Tributo',
+      'answer': 'A general tax paid by the Filipinos to Spain.',
+      'source_page': 1,
+    });
+
+    test('adds a card for each bolded term without one, built from its note', () {
+      final result = ReviewerParser.parse(deck([tributoCard]), pageCount: 3, fillMissingFlashcards: true);
+      final fronts = result.items.where((i) => i.type == QuestionType.flashcard).map((i) => i.prompt).toList();
+      expect(fronts, ['Tributo', 'Servicio Personal', 'Caja de Comunidad', 'Principalia', 'Gobernadorcillo']);
+
+      final servicio = result.items.firstWhere((i) => i.prompt == 'Servicio Personal');
+      expect(servicio.answer, contains('forced labor')); // the note point is the back
+      expect(servicio.answer, contains('**Servicio Personal**')); // shown in bold
+      expect(servicio.sourcePage, 1);
+      expect(servicio.explanation, isEmpty);
+    });
+
+    test('skips numbers and comma lists, and never duplicates an existing card', () {
+      final result = ReviewerParser.parse(deck([tributoCard]), pageCount: 3, fillMissingFlashcards: true);
+      final fronts = result.items.map((i) => i.prompt.toLowerCase()).toList();
+      expect(fronts.where((f) => f == 'tributo'), hasLength(1));
+      expect(fronts, isNot(contains('1 real')));
+      expect(fronts.any((f) => f.contains('sugar')), isFalse);
+    });
+
+    test('a near-identical spelling counts as covered', () {
+      final card = question('flashcard', {'prompt': 'Gobernadorsillo', 'source_page': 1});
+      final result = ReviewerParser.parse(deck([tributoCard, card]), pageCount: 3, fillMissingFlashcards: true);
+      expect(result.items.where((i) => i.prompt.toLowerCase().startsWith('gobernador')), hasLength(1));
+    });
+
+    test('off by default and when flashcards were not requested', () {
+      final result = ReviewerParser.parse(deck([tributoCard]), pageCount: 3);
+      expect(result.items, hasLength(1));
     });
   });
 }

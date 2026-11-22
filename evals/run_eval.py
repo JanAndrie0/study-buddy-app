@@ -79,14 +79,20 @@ def fill_prompt(template: str, language: str, question_types: list[str], notes: 
             rows.append(f"| {t} | {int(share * 100 + 0.5)}%{extra} |")  # Dart's round(): half away from 0
         table = "\n".join(rows)
     else:
-        table = "(No questions requested.)"
+        table = "(No quiz questions requested.)"
     notes_text = ("requested. Write key points by topic (section 5)." if notes
                   else "not requested. Set `notes` to an empty list.")
-    n_questions = target_questions(page_count) if question_types else 0
+    # ADR-010: flashcards are outside the quiz count, one per key term.
+    flashcard_text = ("requested. List every key term in `key_terms`, then make one `flashcard` for each (section 3), "
+                      "in addition to the quiz questions." if "flashcard" in question_types
+                      else "not requested. Set `key_terms` to an empty list and do not write any `flashcard` items.")
+    has_quiz = any(t != "flashcard" for t in question_types)
+    n_questions = target_questions(page_count) if has_quiz else 0
     return (template
             .replace("{{explanation_language}}", language)
             .replace("{{target_questions}}", str(n_questions))
             .replace("{{question_mix}}", table)
+            .replace("{{flashcard_instruction}}", flashcard_text)
             .replace("{{notes_instruction}}", notes_text))
 
 # USD per 1M tokens (input, output incl. thinking). Source: Gemini API pricing
@@ -265,6 +271,26 @@ def score_notes(notes: list, pages: list[str], language: str) -> tuple[float, di
     }
 
 
+def term_coverage(notes: list, questions: list) -> tuple[float, int, list[str]]:
+    """ADR-010: share of the key terms bolded in the notes that have their own
+    flashcard. Skips bolded numbers and comma lists (not terms)."""
+    terms = set()
+    for section in notes:
+        for point in section.get("points") or []:
+            for raw in re.findall(r"\*\*(.+?)\*\*", str(point)):
+                t = normalize(raw)
+                if t and not re.search(r"\d", raw) and "," not in raw and len(t.split()) <= 5:
+                    terms.add(t)
+    cards = [normalize(q.get("prompt", "")) for q in questions if q.get("type") == "flashcard"]
+
+    def has_card(term: str) -> bool:
+        return any(term == c or term in c or (len(c) >= 4 and c in term)
+                   or fuzz.token_sort_ratio(term, c) >= 85 for c in cards)
+
+    missing = sorted(t for t in terms if not has_card(t))
+    return (1 - len(missing) / len(terms) if terms else 1.0), len(terms), missing
+
+
 def score_deck(deck: dict, pages: list[str], language: str, schema: dict,
                question_types: list[str], notes_wanted: bool) -> dict:
     schema_errors = [e.message for e in Draft202012Validator(schema).iter_errors(deck)]
@@ -305,8 +331,15 @@ def score_deck(deck: dict, pages: list[str], language: str, schema: dict,
             ungrounded_examples.append(f"[{q['type']}] {q['prompt'][:70]} -> {q['answer'][:50]}")
 
     counts = Counter(q.get("type") for q in questions)
+    # The mix only covers quiz items; flashcards are one per key term (ADR-010).
+    quiz_items = [q for q in questions if q.get("type") != "flashcard"]
+    quiz_counts = Counter(q.get("type") for q in quiz_items)
     wanted = target_mix(question_types)
-    mix = 1 - 0.5 * sum(abs(counts.get(t, 0) / n - wanted.get(t, 0.0)) for t in set(wanted) | set(counts))
+    if wanted and quiz_items:
+        mix = 1 - 0.5 * sum(abs(quiz_counts.get(t, 0) / len(quiz_items) - wanted.get(t, 0.0))
+                            for t in set(wanted) | set(quiz_counts))
+    else:
+        mix = 1.0 if not wanted and not quiz_items else 0.0
     dupes = near_duplicates(questions)
     lang_ok = sum(explanation_language_ok(q.get("explanation", ""), language) for q in valid)
 
@@ -318,11 +351,18 @@ def score_deck(deck: dict, pages: list[str], language: str, schema: dict,
         "language": lang_ok / len(valid) if valid else 0.0,
         "notes": notes_part,
     }
+    if "flashcard" in question_types and notes_wanted and notes:
+        coverage, n_terms, missing = term_coverage(notes, questions)
+        parts["terms"] = coverage
+        extra = {**extra, "bold_terms": n_terms, "listed_terms": len(deck.get("key_terms") or []),
+                 "missing_terms": missing[:10]}
     return {
         "score": round(100 * sum(parts.values()) / len(parts), 1),
         **{k: round(100 * v, 1) for k, v in parts.items()},
         **extra,
         "questions": n,
+        "flashcards": counts.get("flashcard", 0),
+        "quiz": len(quiz_items),
         "valid": len(valid),
         "type_counts": dict(counts),
         "page_accuracy": round(100 * near_page / checkable, 1) if checkable else None,
@@ -407,7 +447,7 @@ def main():
     rows = []
     for pdf in pdfs:
         pages = read_pdf_pages(pdf)
-        n_target = target_questions(len(pages)) if question_types else 0
+        n_target = target_questions(len(pages)) if any(t != "flashcard" for t in question_types) else 0
         prompt = fill_prompt(prompt_template, args.language, question_types, notes_wanted, len(pages))
         key = hashlib.sha256(
             prompt.encode() + schema_text.encode() + pdf.read_bytes() + args.model.encode()
@@ -433,16 +473,18 @@ def main():
     print()
     print(f"Model {args.model} · explanations in {args.language} · types {question_types or 'none'}"
           f" · notes {'on' if notes_wanted else 'off'}")
-    cols = ["validity", "grounding", "mix", "uniqueness", "language", "notes"]
+    cols = ["validity", "grounding", "mix", "uniqueness", "language", "notes", "terms"]
     print(f"{'PDF':38} {'score':>5} {'valid':>5} {'grnd':>5} {'mix':>5} {'uniq':>5} {'lang':>5} {'notes':>5}"
-          f" {'n/tgt':>6} {'out+think':>9} {'$':>7}")
+          f" {'terms':>5} {'quiz/tgt':>8} {'cards':>5} {'out+think':>9} {'$':>7}")
     for r in rows:
         if "error" in r:
             print(f"{r['pdf'][:38]:38} ERROR {r['error'][:90]}")
             continue
         parts = " ".join(f"{r[c]:5.1f}" if c in r else f"{'-':>5}" for c in cols)
-        print(f"{r['pdf'][:38]:38} {r['score']:5.1f} {parts} {r['questions']:>3}/{r['target']:<2} "
-              f"{r['output_tokens'] + r['thinking_tokens']:>9} {r['cost_usd']:7.4f}")
+        print(f"{r['pdf'][:38]:38} {r['score']:5.1f} {parts} {r.get('quiz', r['questions']):>4}/{r['target']:<3} "
+              f"{r.get('flashcards', 0):>5} {r['output_tokens'] + r['thinking_tokens']:>9} {r['cost_usd']:7.4f}")
+        if r.get("missing_terms"):
+            print(f"{'':38}   no card for: {', '.join(r['missing_terms'][:6])}")
     scores = [r["score"] for r in rows]
     costs = [r["cost_usd"] for r in rows if "cost_usd" in r]
     if rows:

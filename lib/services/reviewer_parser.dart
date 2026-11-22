@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import '../models/reviewer_item.dart';
-import 'grader.dart' show normalizeAnswer;
+import 'grader.dart' show isCloseMatch, normalizeAnswer;
 
 /// What came out of one Gemini response.
 class ParseResult {
@@ -41,8 +41,9 @@ class ParseResult {
 /// evals/run_eval.py, so the eval score predicts what the app keeps.
 class ReviewerParser {
   /// The schema can't limit the list length (Gemini rejects `maxItems`
-  /// there), so we cap it here.
-  static const maxItems = 60;
+  /// there), so we cap it here: up to 40 quiz questions + up to 60
+  /// flashcards (one per key term, ADR-010).
+  static const maxItems = 100;
 
   static const _languages = {'english', 'filipino', 'taglish'};
   static const _difficulties = {'easy', 'medium', 'hard'};
@@ -50,10 +51,14 @@ class ReviewerParser {
   /// [pageCount] is the PDF's page count; `source_page` must be within it.
   /// [allowedTypes] are the types the student asked for (null = all);
   /// anything else is dropped.
+  /// [fillMissingFlashcards]: when flashcards were requested, every term
+  /// bolded in the notes that still has no flashcard gets one built from its
+  /// note (ADR-010). Offline; no extra Gemini call.
   static ParseResult parse(
     String jsonText, {
     required int pageCount,
     Set<QuestionType>? allowedTypes,
+    bool fillMissingFlashcards = false,
   }) {
     final Object? decoded;
     try {
@@ -124,6 +129,13 @@ class ReviewerParser {
         dropped.add('$label: source_page $page outside 1..$pageCount');
       } else {
         notes.add(NoteSection(heading: heading, points: points, sourcePage: page));
+      }
+    }
+
+    if (fillMissingFlashcards) {
+      for (final card in flashcardsFromNotes(notes, items)) {
+        if (items.length >= maxItems) break;
+        if (seenPrompts.add(normalizeAnswer(card.prompt))) items.add(card);
       }
     }
 
@@ -205,6 +217,50 @@ class ReviewerParser {
       underlinedWord: isModified ? _string(q['underlined_word']) : null,
       correction: isModified ? _string(q['correction']) : null,
     );
+  }
+
+  static final _boldTerm = RegExp(r'\*\*(.+?)\*\*');
+
+  /// ADR-010 safety net: key terms bolded in the notes that have no flashcard
+  /// in [existing] yet, as flashcards built from the note itself. Front: the
+  /// term. Back: the note point that explains it (bold markers kept, so the
+  /// term shows in bold). Skips numbers, comma lists and long phrases, which
+  /// are not terms.
+  static List<ReviewerItem> flashcardsFromNotes(List<NoteSection> notes, List<ReviewerItem> existing) {
+    final covered = [
+      for (final item in existing)
+        if (item.type == QuestionType.flashcard) normalizeAnswer(item.prompt),
+    ];
+    bool hasCard(String term) => covered.any((card) =>
+        card == term ||
+        card.contains(term) ||
+        (card.length >= 4 && term.contains(card)) ||
+        isCloseMatch(term, card));
+
+    final cards = <ReviewerItem>[];
+    for (final section in notes) {
+      for (final point in section.points) {
+        for (final match in _boldTerm.allMatches(point)) {
+          final term = match.group(1)!.trim();
+          final key = normalizeAnswer(term);
+          final notATerm = key.length < 3 ||
+              RegExp(r'\d').hasMatch(term) ||
+              term.contains(',') ||
+              key.split(' ').length > 5;
+          if (notATerm || hasCard(key)) continue;
+          covered.add(key);
+          cards.add(ReviewerItem(
+            type: QuestionType.flashcard,
+            sourcePage: section.sourcePage,
+            prompt: term[0].toUpperCase() + term.substring(1),
+            answer: point,
+            explanation: '',
+            difficulty: 'easy',
+          ));
+        }
+      }
+    }
+    return cards;
   }
 
   static String _string(Object? value) => value is String ? value.trim() : '';

@@ -44,16 +44,17 @@ class GenerationOptions {
   /// At least one thing must be selected.
   bool get isValid => questionTypes.isNotEmpty || notes;
 
-  /// How many questions to ask for: 0 when only notes were picked.
-  int targetQuestions(int pageCount) =>
-      questionTypes.isEmpty ? 0 : AppConfig.targetQuestions(pageCount);
+  /// How many QUIZ questions to ask for: 0 when no quiz was picked.
+  /// Flashcards are extra: one per key term (ADR-010).
+  int targetQuestions(int pageCount) => wantsQuiz ? AppConfig.targetQuestions(pageCount) : 0;
 
-  /// Keeps only the selected types from [baseMix] and re-scales their shares
-  /// so they add up to 1 (e.g. multiple choice only → 100% multiple choice).
+  /// Keeps only the selected quiz types from [baseMix] and re-scales their
+  /// shares so they add up to 1 (e.g. multiple choice only → 100% multiple
+  /// choice). Flashcards are never part of the mix (ADR-010).
   Map<QuestionType, double> targetMix(Map<QuestionType, double> baseMix) {
     final picked = {
       for (final entry in baseMix.entries)
-        if (questionTypes.contains(entry.key)) entry.key: entry.value,
+        if (quizTypes.contains(entry.key)) entry.key: entry.value,
     };
     final total = picked.values.fold<double>(0, (sum, share) => sum + share);
     if (total == 0) return {};

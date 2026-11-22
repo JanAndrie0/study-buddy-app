@@ -231,6 +231,12 @@ flowchart TB
 - **Tradeoff:** The Filipino-first feel is now opt-in. Old decks keep the language they were made in.
 - **Revisit when:** classmates (Add Later: 30–50 users) mostly switch to Taglish in Settings.
 
+### ADR-010: One flashcard per key term, outside the quiz count (supersedes the flashcard share in ADR-008)
+- **Choice:** Flashcards are no longer a share of the question mix. When Flashcards is ticked, the prompt asks for **one flashcard for every key term** the lecture defines (the same terms bolded in the notes), up to 60, on top of the quiz questions. `question_mix.json` now holds quiz types only, and `{{target_questions}}` counts quiz questions only. A new `{{flashcard_instruction}}` placeholder says whether flashcards are wanted. The schema gains a **required `key_terms` list written before `questions`**: the model lists every key term first, then writes one flashcard per entry (it reliably follows its own list; the app ignores the list itself). **Safety net in the parser:** any term bolded in the notes that still has no flashcard gets one built from its note (front: the term, back: the note point), offline and free. The parser cap rises from 60 to 100 items, and `maxOutputTokens` from 8192 to 16384. Still one call per PDF (ADR-003); no DB change. The evals add a **terms** score: the share of bolded note terms that the model itself covered (before the safety net).
+- **Why:** The user saw a short lecture with about 20 bolded terms in the notes but only 4 flashcards. With a 15% share of a 10-question minimum, short lectures could never get more than a few cards. Flashcards are for memorising terms, so their count should follow the terms, not the page count.
+- **Tradeoff:** More output tokens per deck (about 80 per card), so slightly higher cost and time (eval: $0.0161/deck vs $0.0106). Cards made by the safety net use the note sentence as the back, which is plainer than a written definition, and a generic word the notes wrongly bolded can become a card. A lecture with more than 60 terms keeps only the most important ones. Old decks keep their few flashcards until regenerated.
+- **Revisit when:** decks often hit 60 flashcards or `maxOutputTokens`; then split flashcards into their own call or raise the limits.
+
 ## Cost Estimate
 - **Monthly now (just you):** about $1–4. A 30-page lecture is roughly 8–10k input tokens and 6–10k output tokens on Gemini Flash, so a few cents per deck. Even 50 decks a month plus eval runs stays well under the ~$10/month AI Pro grant. Firebase App Check and AI Logic themselves add nothing at this scale.
 - **Monthly at next stage (30–50 classmates):** about $5–20, mostly Gemini generation, plus Firestore reads once sync exists. Set per-user generation limits before inviting people.
@@ -268,7 +274,7 @@ flowchart TB
 - PREFER simple, readable Dart over clever abstractions: this is a learning and portfolio repo.
 - DO grade modified true or false in the underline style (ADR-007): every item MUST have `underlined_word` appearing in `prompt` (case-insensitive) and, when the answer is False, a non-empty `correction`; drop items that break this.
 - DO make every new field in `reviewer_schema.json` **required** (use an empty list/string when not applicable). Gemini's constrained decoding skips optional fields even when the prompt asks for them.
-- DO keep `assets/prompts/question_mix.json` as the only source of question-type shares; the app and `evals/run_eval.py` both read it (ADR-008).
+- DO keep `assets/prompts/question_mix.json` as the only source of quiz-type shares; the app and `evals/run_eval.py` both read it (ADR-008). Flashcards are not in it: one per key term (ADR-010).
 
 ## Changelog
 | Date | Reason | Changes |
@@ -277,6 +283,7 @@ flowchart TB
 | 2026-11-20 | Modified true or false format chosen while designing `reviewer_schema.json` | Added ADR-007 (underline style, supersedes the modified T/F rule of ADR-004; ADR-004 left unchanged). Updated the Local grader role and added an agent rule. Schema field `wrong_word` → `underlined_word` (always present). Note: Google renamed the "Vertex AI Gemini API" to the **"Agent Platform Gemini API"**; in `firebase_ai` 5.x the backend is `FirebaseAI.agentPlatform()`. |
 | 2026-11-21 | User asked to choose quiz types and add flashcards / notes per lecture | Added ADR-008 (student-chosen content; notes in the same single call via a required `notes` array; shared `question_mix.json`; DB schema v2 with `note_sections` and a tested migration). Added agent rules: new schema fields must be required; one source for type shares. ADR-003, ADR-006 unchanged. |
 | 2026-11-21 | Design feedback #3: default language English | Added ADR-009 (English default; supersedes only the default in ADR-005, which is left unchanged). DB schema v4 + step-by-step migrations with frozen per-version schemas. |
+| 2026-11-22 | User: a lecture with ~20 key terms got only 4 flashcards | Added ADR-010 (one flashcard per key term, outside the quiz mix; supersedes only the flashcard share in ADR-008). Parser cap 60 → 100, `maxOutputTokens` 8192 → 16384, eval "terms" coverage score. No DB or schema change. |
 
 ---
 To update, run `/planfirst` again.

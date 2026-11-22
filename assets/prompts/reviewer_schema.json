@@ -12,7 +12,11 @@
     },
     "explanation_language": {
       "type": "string",
-      "enum": ["english", "filipino", "taglish"],
+      "enum": [
+        "english",
+        "filipino",
+        "taglish"
+      ],
       "description": "Language used for every explanation in this deck."
     },
     "notes": {
@@ -21,16 +25,36 @@
       "items": {
         "type": "object",
         "properties": {
-          "heading": { "type": "string", "description": "Short topic name." },
-          "source_page": { "type": "integer", "minimum": 1, "description": "PDF page where the topic starts." },
+          "heading": {
+            "type": "string",
+            "description": "Short topic name."
+          },
+          "source_page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "PDF page where the topic starts."
+          },
           "points": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "3 to 6 short key points in explanation_language."
           }
         },
-        "required": ["heading", "source_page", "points"]
+        "required": [
+          "heading",
+          "source_page",
+          "points"
+        ]
       }
+    },
+    "key_terms": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "ADR-010: every key term the lecture defines (terms, names, concepts, acronyms, laws, groups, people, events), in lecture order, written BEFORE the questions. Each one gets exactly one flashcard in `questions`. Empty list when flashcards were not requested."
     },
     "questions": {
       "type": "array",
@@ -64,7 +88,9 @@
           },
           "choices": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 4,
             "maxItems": 4,
             "description": "multiple_choice only: exactly 4 options, one of them identical to answer."
@@ -79,12 +105,16 @@
           },
           "accepted_answers": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "description": "identification only: other correct ways to write the answer (acronym, full name, common spelling). May be empty."
           },
           "items": {
             "type": "array",
-            "items": { "type": "string" },
+            "items": {
+              "type": "string"
+            },
             "minItems": 2,
             "description": "enumeration only: each expected item, short, in the PDF's wording."
           },
@@ -94,12 +124,31 @@
           },
           "difficulty": {
             "type": "string",
-            "enum": ["easy", "medium", "hard"]
+            "enum": [
+              "easy",
+              "medium",
+              "hard"
+            ]
           }
         },
-        "required": ["type", "source_page", "prompt", "answer", "correction", "explanation", "difficulty"]
+        "required": [
+          "type",
+          "source_page",
+          "prompt",
+          "answer",
+          "correction",
+          "explanation",
+          "difficulty"
+        ]
       }
     }
   },
-  "required": ["deck_title", "subject", "explanation_language", "notes", "questions"]
+  "required": [
+    "deck_title",
+    "subject",
+    "explanation_language",
+    "notes",
+    "key_terms",
+    "questions"
+  ]
 }

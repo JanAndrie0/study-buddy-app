@@ -4,28 +4,32 @@ Write the reviewer as JSON that follows the response schema exactly.
 
 ## Settings for this deck
 - Explanation language: **{{explanation_language}}**
-- Target number of questions: **{{target_questions}}**
+- Quiz questions: **{{target_questions}}** (flashcards are extra and do not count toward this number)
+- Flashcards: {{flashcard_instruction}}
 - Notes: {{notes_instruction}}
 
 ## 1. Use only the lecture
 - Every question, answer and explanation must come from facts stated in the PDF. Do not add outside knowledge, even if it is true.
-- If the PDF does not have enough facts for {{target_questions}} good questions, write fewer. Never pad with vague or repeated questions.
+- If the PDF does not have enough facts for {{target_questions}} good quiz questions, write fewer. Never pad with vague or repeated questions.
 - Skip the cover page, the instructor's name, learning objectives, "thank you" slides, references and page numbers. Ask about the content.
 - `source_page` is the PDF page (the first page of the file is 1, even if the slide shows a different number) where the answer is stated.
 
-## 2. Question-type mix
-The student chose these question types. Use ONLY these types, and aim for this mix (round to whole questions; it is fine to be a little off if the lecture fits one type better). If the target number of questions is 0, `questions` must be an empty list.
+## 2. Quiz-type mix
+The student chose these quiz types. For the quiz questions, use ONLY these types, and aim for this mix (round to whole questions; it is fine to be a little off if the lecture fits one type better). If the number of quiz questions is 0, write no quiz questions (only flashcards, if they are requested). If neither is requested, `questions` must be an empty list.
 
 {{question_mix}}
 
 Difficulty: about 40% easy (recall a term), 40% medium (understand or compare), 20% hard (apply, or tell apart similar ideas).
 
-Test each fact at most twice in the whole deck, and never with the same wording.
+Test each fact at most twice in the quiz, and never with the same wording. Flashcards are separate: every key term gets its flashcard even if a quiz question also asks about it.
 
 ## 3. Rules for each type
 
-**flashcard**
-- `prompt`: a key term or short question. `answer`: its definition or answer in 1 to 2 sentences, in the PDF's wording.
+**flashcard** (only when flashcards are requested; they go in `questions` with `type` "flashcard")
+- **Step 1, `key_terms`:** before writing `questions`, go through the lecture section by section and list **every key term**: each term, name, concept, acronym, law, tax, system, group, person or event that the lecture defines or explains. If notes are requested, first copy **every** term you made **bold** in the notes into `key_terms` (one entry each), then add any other key term the notes left out. Spell each one exactly as the lecture does. A typical lecture has 15 to 40 key terms; do not stop at a few. At most 60; if there are more, keep the most important ones.
+- **Step 2, flashcards:** start `questions` with exactly one flashcard for each entry in `key_terms`, in the same order. The number of flashcards must equal the number of key terms. Only after the last flashcard, write the quiz questions.
+- One term per card; never put two terms in one card. Skip plain numbers, dates and lists of examples (those belong in quiz questions and notes).
+- `prompt`: the term, spelled exactly as in the lecture (e.g. "Tributo"). `answer`: what it means, in 1 to 2 sentences, in the PDF's wording.
 
 **multiple_choice**
 - `choices`: exactly 4 options. One is correct; the other 3 are plausible wrong answers taken from the same lecture (other terms, other categories), not jokes.
@@ -76,7 +80,7 @@ If notes are requested, `notes` is the lecture's key points by topic, like a goo
 - Write `heading` and `points` in **{{explanation_language}}** (same style as explanations), keeping technical terms in English.
 - `source_page`: the PDF page where the topic starts.
 - Only facts from the PDF. Don't mention slide or page numbers inside the points.
-- In each point, make the important terms **bold** by wrapping them in double asterisks (usually 1 to 3 per point: key terms, names, numbers), e.g. "**Philosophy** comes from **philia** (love) and **sophia** (wisdom)." Don't bold whole sentences. Never use `**` in headings, questions, choices or answers.
+- In each point, make the key terms **bold** by wrapping them in double asterisks (usually 1 to 3 per point), e.g. "**Philosophy** comes from **philia** (love) and **sophia** (wisdom)." Bold only real terms: names of concepts, people, groups, laws, taxes, systems, categories or events that a student must memorise. Do not bold ordinary descriptive phrases ("faster implementation", "very expensive") or whole sentences. Never use `**` in headings, questions, choices or answers.
 If notes are not requested, `notes` must be an empty list.
 
 ## 6. Deck details
