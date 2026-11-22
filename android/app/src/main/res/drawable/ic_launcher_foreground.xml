@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Study Buddy "Card buddies" logo (Figma page "4 · Logo"), adaptive icon
+     foreground. Same 512 × 512 coordinates as the Figma SVG, scaled to 85 %
+     so the cards stay inside Android's 66 dp safe zone. Background colour:
+     @color/ic_launcher_background (ink navy). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <group
+        android:pivotX="259"
+        android:pivotY="260"
+        android:scaleX="0.85"
+        android:scaleY="0.85"
+        android:translateX="-3"
+        android:translateY="-4">
+        <!-- Back card (mint), tilted 10° -->
+        <group android:pivotX="300" android:pivotY="250" android:rotation="10">
+            <path
+                android:fillColor="#7FD6AE"
+                android:pathData="M226,112 h140 a30,30 0 0 1 30,30 v202 a30,30 0 0 1 -30,30 h-140 a30,30 0 0 1 -30,-30 v-202 a30,30 0 0 1 30,-30 z" />
+        </group>
+        <!-- Front card (paper) with the smiling face, tilted -8° -->
+        <group android:pivotX="225" android:pivotY="275" android:rotation="-8">
+            <path
+                android:fillColor="#FFFDF8"
+                android:pathData="M148,140 h152 a30,30 0 0 1 30,30 v212 a30,30 0 0 1 -30,30 h-152 a30,30 0 0 1 -30,-30 v-212 a30,30 0 0 1 30,-30 z" />
+            <path
+                android:fillColor="#1E2A4A"
+                android:pathData="M175,252 a15,15 0 1 0 30,0 a15,15 0 1 0 -30,0 z M243,252 a15,15 0 1 0 30,0 a15,15 0 1 0 -30,0 z" />
+            <path
+                android:fillColor="#00000000"
+                android:strokeColor="#1E2A4A"
+                android:strokeWidth="15"
+                android:strokeLineCap="round"
+                android:pathData="M186,302 Q224,334 262,302" />
+        </group>
+    </group>
+</vector>

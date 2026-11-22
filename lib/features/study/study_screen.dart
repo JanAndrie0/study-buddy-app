@@ -5,13 +5,16 @@ import 'package:material_ui/material_ui.dart';
 import '../../data/database.dart';
 import '../../models/reviewer_item.dart';
 import '../../theme.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/rich_terms.dart';
+import '../../widgets/ui.dart';
+import '../decks/deck_screen.dart' show questionTypeLabels;
 import 'question_views.dart';
 import 'study_controller.dart';
 
 /// Quiz / review session: one question per screen, a feedback banner that
 /// slides up from the bottom, then a summary. Works in airplane mode.
-/// [deckId] null = all due cards from every deck.
+/// [deckId] null = all due cards from every deck. Figma: "Quiz" row.
 class StudyScreen extends ConsumerStatefulWidget {
   const StudyScreen({super.key, this.deckId, this.mode = StudyMode.review});
 
@@ -40,11 +43,7 @@ class _StudyScreenState extends ConsumerState<StudyScreen> {
       appBar: AppBar(
         title: Text(widget.mode == StudyMode.quiz ? 'Quiz' : 'Review'),
         actions: [
-          if (answering)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: Center(child: Text('${state.index + 1} / $total')),
-            ),
+          if (answering) _Counter('${state.index + 1} / $total'),
         ],
         bottom: answering ? SegmentedProgress(done: state.answers.length, total: total) : null,
       ),
@@ -60,8 +59,10 @@ class _StudyScreenState extends ConsumerState<StudyScreen> {
           ),
         _ => ListView(
             // Room at the bottom so the feedback banner never hides the question.
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 280),
+            padding: const EdgeInsets.fromLTRB(Space.lg, Space.sm, Space.lg, 300),
             children: [
+              QuestionTypeTag(item: state.item!),
+              const SizedBox(height: Space.md),
               QuestionView(
                 key: ValueKey(state.current!.question.id),
                 item: state.item!,
@@ -80,7 +81,31 @@ class _StudyScreenState extends ConsumerState<StudyScreen> {
   }
 }
 
-/// A row of small bars: filled = answered.
+/// "4 / 10" in the app bar.
+class _Counter extends StatelessWidget {
+  const _Counter(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(right: Space.lg),
+        child: Center(child: Text(text, style: Theme.of(context).textTheme.labelMedium)),
+      );
+}
+
+/// "Multiple choice", "Identification"… above the question (Figma "Tag").
+class QuestionTypeTag extends StatelessWidget {
+  const QuestionTypeTag({super.key, required this.item});
+  final ReviewerItem item;
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.centerLeft,
+        child: TagPill(questionTypeLabels[item.type.jsonName] ?? item.type.jsonName),
+      );
+}
+
+/// A row of small bars: filled = answered. Each bar fills in as you answer.
 class SegmentedProgress extends StatelessWidget implements PreferredSizeWidget {
   const SegmentedProgress({super.key, required this.done, required this.total});
 
@@ -88,33 +113,37 @@ class SegmentedProgress extends StatelessWidget implements PreferredSizeWidget {
   final int total;
 
   @override
-  Size get preferredSize => const Size.fromHeight(10);
+  Size get preferredSize => const Size.fromHeight(12);
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    if (total == 0) return const SizedBox(height: 10);
+    final t = context.tokens;
+    if (total == 0) return const SizedBox(height: 12);
     // Many questions: one continuous bar is easier to read than tiny segments.
     if (total > 25) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(value: done / total, minHeight: 6),
+        padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, 6),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(end: done / total),
+          duration: motion(context, Motion.medium),
+          curve: Motion.standard,
+          builder: (context, v, _) => LinearProgressIndicator(value: v, borderRadius: BorderRadius.circular(3)),
         ),
       );
     }
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      padding: const EdgeInsets.fromLTRB(Space.lg, 0, Space.lg, 6),
       child: Row(
         children: [
           for (var i = 0; i < total; i++)
             Expanded(
-              child: Container(
+              child: AnimatedContainer(
+                duration: motion(context, Motion.medium),
+                curve: Motion.standard,
                 height: 6,
                 margin: const EdgeInsets.symmetric(horizontal: 1.5),
                 decoration: BoxDecoration(
-                  color: i < done ? scheme.primary : scheme.surfaceContainerHighest,
+                  color: i < done ? t.primary : t.track,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -133,8 +162,9 @@ String correctAnswerText(ReviewerItem item) => switch (item.type) {
       _ => item.answer,
     };
 
-/// Slides up after an answer: green when right, red with the answer when
-/// wrong, then the explanation (bold key terms), source page and Continue.
+/// Slides up after an answer (Figma "Feedback banner"): icon + title + colour
+/// show the result, then the correct answer, the explanation (bold key
+/// terms), the source page and Continue.
 class FeedbackBanner extends StatelessWidget {
   const FeedbackBanner({super.key, required this.answer, required this.onContinue});
 
@@ -144,12 +174,15 @@ class FeedbackBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.tokens;
     final item = answer.card.question.toItem();
     final grade = answer.grade;
     final partial = !grade.isCorrect && grade.score > 0;
-    final color = grade.isCorrect
-        ? successColor(context)
-        : (partial ? warningColor(context) : theme.colorScheme.error);
+    final (color, icon, buttonBg, buttonFg) = grade.isCorrect
+        ? (t.success, Icons.check_circle, t.success, t.onStatus)
+        : partial
+            ? (t.warning, Icons.error_outline, t.primary, t.onPrimary)
+            : (t.error, Icons.cancel, t.error, t.onStatus);
     final title = grade.isCorrect
         ? 'Tama! Great job'
         : partial
@@ -160,50 +193,51 @@ class FeedbackBanner extends StatelessWidget {
 
     return TweenAnimationBuilder<Offset>(
       tween: Tween(begin: const Offset(0, 1), end: Offset.zero),
-      duration: motion(context, 250),
-      curve: Curves.easeOutCubic,
+      duration: motion(context, Motion.medium),
+      curve: Motion.standard,
       builder: (context, offset, child) => FractionalTranslation(translation: offset, child: child),
       child: Material(
-        color: theme.cardTheme.color,
+        color: t.surface,
         elevation: 12,
-        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        shadowColor: Colors.black38,
+        shape: RoundedRectangleBorder(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.xl)),
+          side: BorderSide(color: t.border),
+        ),
         child: SafeArea(
           top: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            padding: const EdgeInsets.fromLTRB(Space.xl, Space.xl, Space.xl, Space.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
-                  Icon(grade.isCorrect ? Icons.check_circle : Icons.cancel, color: color),
-                  const SizedBox(width: 8),
-                  Text(title, style: theme.textTheme.titleLarge?.copyWith(color: color)),
+                  PopIn(child: Icon(icon, color: color, size: 26)),
+                  const SizedBox(width: Space.sm),
+                  Expanded(child: Text(title, style: theme.textTheme.titleLarge!.copyWith(color: color))),
                 ]),
                 if (!grade.isCorrect) ...[
-                  const SizedBox(height: 8),
-                  Text('Correct answer', style: theme.textTheme.labelMedium),
-                  Text(correctAnswerText(item), style: theme.textTheme.titleMedium),
+                  const SizedBox(height: Space.sm),
+                  Text('Correct answer', style: theme.textTheme.labelSmall),
+                  Text(correctAnswerText(item), style: theme.textTheme.bodyLarge!.copyWith(fontWeight: FontWeight.w700)),
                 ],
-                const SizedBox(height: 10),
+                const SizedBox(height: Space.sm),
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 140),
                   child: SingleChildScrollView(child: RichTerms(item.explanation)),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: Space.sm),
                 Row(children: [
-                  Icon(Icons.description_outlined, size: 16, color: theme.colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
+                  Icon(Icons.description_outlined, size: 16, color: t.textSecondary),
+                  const SizedBox(width: Space.xs),
                   Text('Source: page ${item.sourcePage}', style: theme.textTheme.bodySmall),
                 ]),
-                const SizedBox(height: 12),
+                const SizedBox(height: Space.md),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: color,
-                      foregroundColor: grade.isCorrect || partial ? onSemanticColor(context) : theme.colorScheme.onError,
-                    ),
+                    style: FilledButton.styleFrom(backgroundColor: buttonBg, foregroundColor: buttonFg),
                     onPressed: onContinue,
                     child: const Text('Continue'),
                   ),
@@ -228,78 +262,78 @@ class SessionSummary extends StatelessWidget {
   final VoidCallback? onStudyAnyway;
 
   /// What to say when there was nothing to answer (defaults to "nothing due").
+  /// The first line is the title, the rest the body.
   final String? emptyMessage;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.tokens;
     if (state.answers.isEmpty) {
-      final limited = state.heldBackNew > 0;
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(limited ? Icons.hourglass_bottom : Icons.check_circle_outline,
-                  size: 56, color: theme.colorScheme.primary),
-              const SizedBox(height: 12),
-              Text(
-                limited
-                    ? "You've reached today's new-card limit.\n${state.heldBackNew} new cards are waiting."
-                    : emptyMessage ?? 'Walang due ngayon.\nCome back later, or try Flashcards or Test.',
-                textAlign: TextAlign.center,
-              ),
-              if (limited && onStudyAnyway != null) ...[
-                const SizedBox(height: 20),
-                FilledButton(onPressed: onStudyAnyway, child: const Text('Study anyway')),
-                const SizedBox(height: 4),
-                Text('You can change the limit in Settings.', style: theme.textTheme.bodySmall),
-              ],
-            ],
-          ),
-        ),
+      if (state.heldBackNew > 0) {
+        return EmptyState(
+          icon: Icons.hourglass_bottom,
+          title: "You've reached today's new-card limit.",
+          body: '${state.heldBackNew} new cards are waiting. You can change the limit in Settings.',
+          action: onStudyAnyway == null
+              ? null
+              : FilledButton(onPressed: onStudyAnyway, child: const Text('Study anyway')),
+        );
+      }
+      final lines = (emptyMessage ?? 'Walang due ngayon.\nCome back later, or try Flashcards or Test.').split('\n');
+      return EmptyState(
+        icon: Icons.check_circle_outline,
+        title: lines.first,
+        body: lines.length > 1 ? lines.skip(1).join('\n') : null,
+        action: onRetake == null ? null : OutlinedButton(onPressed: onRetake, child: const Text('Retake')),
       );
     }
     final total = state.answers.length;
     final correct = state.correctCount;
     final missed = state.answers.where((a) => !a.grade.isCorrect).toList();
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(Space.xxl),
       children: [
         Center(child: ScoreRing(correct: correct, total: total)),
-        const SizedBox(height: 16),
+        const SizedBox(height: Space.lg),
         Text(correct == total ? 'Perfect!' : 'Tapos na!',
-            style: theme.textTheme.headlineSmall, textAlign: TextAlign.center),
+            style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
         if (missed.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text('Balikan mo ang mga ito:', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 8),
-          for (final answer in missed)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(answer.card.question.prompt, style: theme.textTheme.titleSmall),
-                    const SizedBox(height: 6),
-                    Text('Answer: ${correctAnswerText(answer.card.question.toItem())}',
-                        style: TextStyle(color: successColor(context), fontWeight: FontWeight.w600)),
-                    if (answer.answeredText != null && answer.answeredText!.isNotEmpty)
-                      Text('You: ${answer.answeredText}', style: theme.textTheme.bodySmall),
-                    const SizedBox(height: 6),
-                    RichTerms(answer.card.question.explanation, style: theme.textTheme.bodyMedium),
-                    Text('page ${answer.card.question.sourcePage}', style: theme.textTheme.bodySmall),
-                  ],
+          const SizedBox(height: Space.xxl),
+          Text('Balikan mo ang mga ito:', style: theme.textTheme.titleLarge),
+          const SizedBox(height: Space.sm),
+          for (final (i, answer) in missed.indexed)
+            FadeSlideIn(
+              index: i,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(Space.lg),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(answer.card.question.prompt, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 6),
+                      _MarkRow(
+                        icon: Icons.check,
+                        color: t.success,
+                        text: 'Answer: ${correctAnswerText(answer.card.question.toItem())}',
+                        bold: true,
+                      ),
+                      if (answer.answeredText != null && answer.answeredText!.isNotEmpty)
+                        _MarkRow(icon: Icons.close, color: t.error, text: 'You: ${answer.answeredText}'),
+                      const SizedBox(height: 6),
+                      RichTerms(answer.card.question.explanation, style: theme.textTheme.bodyMedium),
+                      Text('page ${answer.card.question.sourcePage}', style: theme.textTheme.bodySmall),
+                    ],
+                  ),
                 ),
               ),
             ),
         ],
-        const SizedBox(height: 24),
+        const SizedBox(height: Space.xxl),
         if (onRetake != null) ...[
           OutlinedButton(onPressed: onRetake, child: const Text('Retake')),
-          const SizedBox(height: 8),
+          const SizedBox(height: Space.sm),
         ],
         FilledButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Done')),
       ],
@@ -307,7 +341,33 @@ class SessionSummary extends StatelessWidget {
   }
 }
 
-/// Big circular score, e.g. 80% with "8 / 10" under it.
+/// ✓ Answer: … / ✗ You: … line in the summary.
+class _MarkRow extends StatelessWidget {
+  const _MarkRow({required this.icon, required this.color, required this.text, this.bold = false});
+
+  final IconData icon;
+  final Color color;
+  final String text;
+  final bool bold;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.bodySmall!;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(padding: const EdgeInsets.only(top: 2), child: Icon(icon, size: 16, color: color)),
+        const SizedBox(width: Space.xs),
+        Expanded(
+          child: Text(text, style: bold ? style.copyWith(color: color, fontWeight: FontWeight.w700) : style),
+        ),
+      ],
+    );
+  }
+}
+
+/// Big circular score: the ring fills and the % counts up from 0, e.g. 80%
+/// with "8 / 10" under it. Green ≥ 75 %, amber ≥ 50 %, otherwise red.
 class ScoreRing extends StatelessWidget {
   const ScoreRing({super.key, required this.correct, required this.total});
 
@@ -317,31 +377,41 @@ class ScoreRing extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final t = context.tokens;
     final value = total == 0 ? 0.0 : correct / total;
-    return SizedBox(
-      width: 140,
-      height: 140,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          CircularProgressIndicator(
-            value: value,
-            strokeWidth: 12,
-            backgroundColor: theme.colorScheme.surfaceContainerHighest,
-            color: value >= 0.75
-                ? successColor(context)
-                : (value >= 0.5 ? warningColor(context) : theme.colorScheme.error),
+    final color = value >= 0.75 ? t.success : (value >= 0.5 ? t.warning : t.error);
+    return Semantics(
+      label: 'Score ${(value * 100).round()} percent, $correct of $total correct',
+      excludeSemantics: true,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: value),
+        duration: motion(context, Motion.celebrate),
+        curve: Motion.standard,
+        builder: (context, v, _) => SizedBox(
+          width: 140,
+          height: 140,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CircularProgressIndicator(
+                value: v,
+                strokeWidth: 12,
+                backgroundColor: t.track,
+                color: color,
+                strokeCap: StrokeCap.round,
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${(v * 100).round()}%', style: theme.textTheme.headlineMedium),
+                    Text('$correct / $total', style: theme.textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            ],
           ),
-          Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('${(value * 100).round()}%', style: theme.textTheme.headlineMedium),
-                Text('$correct / $total', style: theme.textTheme.bodyMedium),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

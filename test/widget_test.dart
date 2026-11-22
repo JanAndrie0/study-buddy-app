@@ -30,8 +30,8 @@ void main() {
   testWidgets('empty state invites you to add a lecture', (tester) async {
     await pumpHome(tester, decks: []);
     expect(find.textContaining('Wala pang reviewer'), findsOneWidget);
-    // The floating button plus the empty-state call to action.
-    expect(find.text('Add lecture'), findsNWidgets(2));
+    // Redesign (Figma "Home · empty"): one call to action, no floating button.
+    expect(find.text('Add lecture'), findsOneWidget);
   });
 
   testWidgets('a saved deck shows with its question count and due count', (tester) async {

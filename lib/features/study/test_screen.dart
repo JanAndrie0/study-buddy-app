@@ -5,7 +5,7 @@ import '../add_lecture/add_lecture_screen.dart' show quizTypeLabels;
 import '../../models/reviewer_item.dart';
 import 'question_views.dart';
 import 'study_controller.dart';
-import 'study_screen.dart' show SegmentedProgress, SessionSummary;
+import 'study_screen.dart' show QuestionTypeTag, SegmentedProgress, SessionSummary;
 
 /// Test (design feedback #4): a practice exam. Pick the question types and
 /// how many, answer them all without feedback, then see a score ring and
@@ -52,7 +52,8 @@ class _TestScreenState extends ConsumerState<TestScreen> {
           children: [
             Text('Practice exam', style: theme.textTheme.headlineSmall),
             const SizedBox(height: 4),
-            const Text('No hints until the end. Your review schedule is not affected.'),
+            Text('No hints until the end. Your review schedule is not affected.',
+                style: theme.textTheme.bodyLarge!.copyWith(color: theme.colorScheme.onSurfaceVariant)),
             const SizedBox(height: 20),
             Text('Question types', style: theme.textTheme.titleSmall),
             const SizedBox(height: 8),
@@ -112,6 +113,8 @@ class _TestScreenState extends ConsumerState<TestScreen> {
         _ => ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              QuestionTypeTag(item: state.item!),
+              const SizedBox(height: 12),
               QuestionView(
                 key: ValueKey('${state.current!.question.id}-${state.index}'),
                 item: state.item!,

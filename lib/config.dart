@@ -16,9 +16,11 @@ class AppConfig {
 
   /// Hard cap on how much text Gemini may write back (and bill us for).
   /// Thinking tokens also bill as output. In the evals the biggest Flash-Lite
-  /// deck (31 questions) used 3,335 output + thinking tokens, so 8192 leaves
-  /// room for a 40-question deck without letting a runaway response cost much.
-  static const int maxOutputTokens = 8192;
+  /// deck (31 questions) used 3,335 output + thinking tokens; with notes it
+  /// reached 5,350. ADR-010 adds one flashcard per key term (up to 60, about
+  /// 80 tokens each), so 16384 leaves room for 40 questions + 60 flashcards +
+  /// notes. Worst case ≈ $0.04 of output per deck.
+  static const int maxOutputTokens = 16384;
 
   /// How many questions to ask Gemini for: about 0.8 per page, 10 to 40.
   /// Must match target_questions() in evals/run_eval.py.

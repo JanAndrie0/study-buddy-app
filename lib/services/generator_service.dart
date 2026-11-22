@@ -37,7 +37,7 @@ String fillPromptTemplate({
 }) {
   final mix = options.targetMix(parseQuestionMix(mixJson));
   final table = mix.isEmpty
-      ? '(No questions requested.)'
+      ? '(No quiz questions requested.)'
       : [
           '| type | share |',
           '|---|---|',
@@ -48,10 +48,15 @@ String fillPromptTemplate({
   final notes = options.notes
       ? 'requested. Write key points by topic (section 5).'
       : 'not requested. Set `notes` to an empty list.';
+  final flashcards = options.flashcards
+      ? 'requested. List every key term in `key_terms`, then make one `flashcard` for each (section 3), '
+          'in addition to the quiz questions.'
+      : 'not requested. Set `key_terms` to an empty list and do not write any `flashcard` items.';
   return template
       .replaceAll('{{explanation_language}}', options.language)
       .replaceAll('{{target_questions}}', options.targetQuestions(pageCount).toString())
       .replaceAll('{{question_mix}}', table)
+      .replaceAll('{{flashcard_instruction}}', flashcards)
       .replaceAll('{{notes_instruction}}', notes);
 }
 

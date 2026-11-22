@@ -191,6 +191,8 @@ class AddLectureController extends Notifier<AddLectureState> {
       output.jsonText,
       pageCount: info.pageCount,
       allowedTypes: options.questionTypes,
+      // ADR-010: every term bolded in the notes gets a flashcard.
+      fillMissingFlashcards: options.flashcards,
     );
     // Notes are kept only if asked for; the prompt already says so, this is
     // a safety net.

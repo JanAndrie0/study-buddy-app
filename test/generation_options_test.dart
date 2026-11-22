@@ -12,9 +12,11 @@ void main() {
   final template = File('assets/prompts/generate_reviewer.md').readAsStringSync();
   final baseMix = parseQuestionMix(mixJson);
 
-  test('the shared mix file has all 6 types and adds up to 1', () {
-    expect(baseMix.keys.toSet(), QuestionType.values.toSet());
-    expect(baseMix.values.fold<double>(0, (a, b) => a + b), closeTo(1.0, 1e-9));
+  test('the shared mix file has the 5 quiz types (no flashcards, ADR-010)', () {
+    expect(baseMix.keys.toSet(), GenerationOptions.quizChoices.toSet());
+    expect(baseMix.containsKey(QuestionType.flashcard), isFalse);
+    // Shares are re-scaled to the picked types anyway; this just catches typos.
+    expect(baseMix.values.fold<double>(0, (a, b) => a + b), closeTo(0.85, 1e-9));
   });
 
   test('defaults: 3 quiz types + flashcards + notes, English (ADR-009)', () {
@@ -35,10 +37,11 @@ void main() {
     expect(options.targetMix(baseMix), {QuestionType.multipleChoice: 1.0});
 
     final mix = const GenerationOptions().targetMix(baseMix);
-    expect(mix.keys.toSet(), const GenerationOptions().questionTypes);
+    // Flashcards are on by default but never part of the quiz mix (ADR-010).
+    expect(mix.keys.toSet(), GenerationOptions.defaultQuizTypes);
     expect(mix.values.fold<double>(0, (a, b) => a + b), closeTo(1.0, 1e-9));
-    // identification 25 / (25 + 20 + 15 + 15) = 1/3
-    expect(mix[QuestionType.identification], closeTo(1 / 3, 1e-9));
+    // identification 25 / (25 + 20 + 15) = 5/12
+    expect(mix[QuestionType.identification], closeTo(5 / 12, 1e-9));
   });
 
   test('notes only: valid, zero questions, empty mix', () {
@@ -46,6 +49,19 @@ void main() {
     expect(options.isValid, isTrue);
     expect(options.targetQuestions(20), 0);
     expect(options.targetMix(baseMix), isEmpty);
+  });
+
+  test('flashcards only: no quiz questions, flashcards come per key term (ADR-010)', () {
+    const options = GenerationOptions(quizTypes: {}, flashcards: true, notes: false);
+    expect(options.isValid, isTrue);
+    expect(options.targetQuestions(20), 0);
+    expect(options.targetMix(baseMix), isEmpty);
+  });
+
+  test('the quiz count does not shrink when flashcards are on', () {
+    const withCards = GenerationOptions(flashcards: true);
+    const withoutCards = GenerationOptions(flashcards: false);
+    expect(withCards.targetQuestions(30), withoutCards.targetQuestions(30));
   });
 
   test('nothing selected is not valid', () {
@@ -76,10 +92,18 @@ void main() {
       expect(fill(const GenerationOptions(notes: false)), contains('Notes: not requested'));
     });
 
-    test('notes only asks for 0 questions', () {
+    test('notes only asks for 0 questions and no flashcards', () {
       final prompt = fill(const GenerationOptions(quizTypes: {}, flashcards: false));
-      expect(prompt, contains('Target number of questions: **0**'));
-      expect(prompt, contains('(No questions requested.)'));
+      expect(prompt, contains('Quiz questions: **0**'));
+      expect(prompt, contains('(No quiz questions requested.)'));
+      expect(prompt, contains('Flashcards: not requested'));
+    });
+
+    test('flashcards on asks for one card per key term, outside the mix (ADR-010)', () {
+      final prompt = fill(const GenerationOptions());
+      expect(prompt, contains('Flashcards: requested'));
+      expect(prompt, contains('every key term'));
+      expect(prompt, isNot(contains('| flashcard |')));
     });
 
     test('language fills explanations and notes', () {

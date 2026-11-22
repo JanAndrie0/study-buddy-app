@@ -7,6 +7,8 @@ import 'package:flutter/services.dart' show HapticFeedback;
 
 import '../../providers.dart';
 import '../../theme.dart';
+import '../../widgets/motion.dart';
+import '../../widgets/ui.dart';
 import 'match_logic.dart';
 
 /// Match (design feedback #4): tap a term, then its meaning, against the
@@ -109,7 +111,7 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
-            child: Center(child: Text(_time(_watch.elapsed), style: theme.textTheme.titleMedium)),
+            child: Center(child: Text('Time: ${_time(_watch.elapsed)}', style: theme.textTheme.labelMedium)),
           ),
         ],
       ),
@@ -124,8 +126,8 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.emoji_events_outlined, size: 64, color: theme.colorScheme.primary),
-                            const SizedBox(height: 8),
+                            const IconDisc(icon: Icons.emoji_events_outlined),
+                            const SizedBox(height: 16),
                             Text('Galing!', style: theme.textTheme.headlineMedium),
                             const SizedBox(height: 8),
                             Text('Time: ${_time(_watch.elapsed)}', style: theme.textTheme.titleLarge),
@@ -147,15 +149,20 @@ class _MatchScreenState extends ConsumerState<MatchScreen> {
                         childAspectRatio: 1.25,
                         children: [
                           for (var i = 0; i < _tiles.length; i++)
-                            AnimatedOpacity(
+                            // Matched pairs shrink a little and fade away.
+                            AnimatedScale(
+                              scale: _cleared.contains(i) ? 0.96 : 1,
+                              duration: motion(context, Motion.medium),
+                              child: AnimatedOpacity(
                               opacity: _cleared.contains(i) ? 0 : 1,
-                              duration: motion(context, 250),
+                              duration: motion(context, Motion.medium),
                               child: _MatchTileView(
                                 tile: _tiles[i],
                                 selected: _selected == i,
                                 wrong: _wrongA == i || _wrongB == i,
                                 onTap: () => _tap(i),
                               ),
+                            ),
                             ),
                         ],
                       ),
@@ -174,45 +181,54 @@ class _MatchTileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final border = wrong ? scheme.error : (selected ? scheme.primary : scheme.outlineVariant);
+    final t = context.tokens;
+    final theme = Theme.of(context);
+    final (bg, border, width) = wrong
+        ? (t.errorSoft, t.error, 2.0)
+        : selected
+            ? (t.accentSoft, t.primary, 2.0)
+            : (t.surface, t.border, 1.0);
+    final radius = BorderRadius.circular(Radii.md);
     return Semantics(
       button: true,
       selected: selected,
       label: '${tile.isTerm ? 'Term' : 'Meaning'}: ${tile.text}${wrong ? '. Not a match' : ''}',
       excludeSemantics: true,
-      child: Material(
-      color: wrong ? scheme.errorContainer : (selected ? scheme.primaryContainer : Theme.of(context).cardTheme.color),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: border, width: 2),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Stack(
-            children: [
-              Center(
-                child: Text(
-                  tile.text,
-                  textAlign: TextAlign.center,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontWeight: tile.isTerm ? FontWeight.w800 : FontWeight.w400,
-                    color: wrong ? scheme.onErrorContainer : null,
-                  ),
+      // Motion spec: a wrong pair shakes once.
+      child: Shake(
+        active: wrong,
+        child: AnimatedContainer(
+          duration: motion(context, Motion.short),
+          decoration: BoxDecoration(color: bg, borderRadius: radius, border: Border.all(color: border, width: width)),
+          child: Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              borderRadius: radius,
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Text(
+                        tile.text,
+                        textAlign: TextAlign.center,
+                        maxLines: 5,
+                        overflow: TextOverflow.ellipsis,
+                        style: tile.isTerm
+                            ? theme.textTheme.titleMedium
+                            : theme.textTheme.bodySmall!.copyWith(color: t.textPrimary),
+                      ),
+                    ),
+                    // Not colour alone: a wrong pair also shows an ✗.
+                    if (wrong) Positioned(top: 0, right: 0, child: Icon(Icons.close, size: 18, color: t.error)),
+                  ],
                 ),
               ),
-              // Not colour alone: a wrong pair also shows an ✗.
-              if (wrong) Positioned(top: 0, right: 0, child: Icon(Icons.close, size: 18, color: scheme.error)),
-            ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }

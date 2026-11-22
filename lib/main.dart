@@ -1,6 +1,7 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show LicenseEntryWithLineBreaks, LicenseRegistry, kDebugMode;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -33,6 +34,13 @@ Future<void> main() async {
             ? const AndroidDebugProvider()
             : const AndroidPlayIntegrityProvider(),
   );
+
+  // The bundled fonts' licences (OFL) appear on the Licenses page in Settings.
+  LicenseRegistry.addLicense(() async* {
+    for (final font in ['Fraunces', 'Inter']) {
+      yield LicenseEntryWithLineBreaks([font], await rootBundle.loadString('assets/fonts/OFL-$font.txt'));
+    }
+  });
 
   runApp(const ProviderScope(child: StudyBuddyApp()));
 }
