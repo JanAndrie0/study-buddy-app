@@ -14,6 +14,10 @@
   Flutter · Firebase AI Logic (Gemini) · Drift (SQLite) · FSRS · Android
 </p>
 
+<p align="center">
+  <a href="https://youtube.com/shorts/wrPjDCPhS4Q"><b>▶ Watch the 1-minute demo</b></a>
+</p>
+
 ---
 
 <table>
@@ -191,5 +195,6 @@ A personal study tool and portfolio project, built in phases. The build log, eva
 
 - ✅ Generation, parsing and grading; all study modes; FSRS; offline review
 - ✅ Redesign from a Figma design system, with motion and dark mode; signed release APK on my phone
-- ⏳ Test on a low-end Android phone · demo video
+- ✅ [1-minute demo video](https://youtube.com/shorts/wrPjDCPhS4Q) recorded on my phone
+- ⏳ Test on a low-end Android phone
 - Next (v2 candidates): scan printed handouts with the camera; share reviewers with classmates

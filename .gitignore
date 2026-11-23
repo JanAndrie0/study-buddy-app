@@ -66,3 +66,10 @@ evals/results/raw/
 # Python (evals)
 .venv/
 __pycache__/
+
+# Demo video recordings (large; share via YouTube, not Git)
+demo/
+
+# Third-party agent skills (installed locally, not part of this project)
+.agents/
+skills-lock.json
